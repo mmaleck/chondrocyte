@@ -4,7 +4,7 @@ from math import pi, log, ceil, exp, sqrt
 from scipy.signal import square
 from scipy.linalg import null_space
 
-def rhs(t, y, g_K_bar, P_K, Gmax):
+def rhs(t, y, g_K_b_bar, P_K, Gmax):
     V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal = y
 
     if (params.apply_Vm == True):
@@ -18,7 +18,7 @@ def rhs(t, y, g_K_bar, P_K, Gmax):
 
     #Calculate background currents
     I_Na_b = backgroundSodium(V, Na_i)
-    I_K_b = backgroundPotassium(V, K_i, K_o, params.g_K_b_bar)
+    I_K_b = backgroundPotassium(V, K_i, K_o, g_K_b_bar)
     I_Cl_b = backgroundChloride(V, Cl_i)
     I_leak = backgroundLeak(V)
 
@@ -454,24 +454,87 @@ def calciumActivatedPotassium(V, Ca_i):
     
     return I_K_Ca_act
     
-
 def potassiumPump(V, K_i, K_o):
-    pass
+    enable_I_K_ATP = params.enable_I_K_ATP
+    if (enable_I_K_ATP == True):
+        sigma   = 0.6
+        g_0 = 0.05; #Testing, 3/16/16
+        #g_0     = 30.95/40; % FIXME: Somewhat arbitrary. Scaled this down to match Zhou/Ferrero.
+        p_0     = 0.91
+        H_K_ATP = -0.001
+        K_m_ATP = 0.56
+        surf    = 1 # not used, what is this variable ?
 
-def voltageActivatedHydrogen():
-    pass
+        V_0 = params.V_0
+        ADP_i = 10
+        ATP_i = V - V_0 + ADP_i; # FIXME: arbitrary
 
-def stretchActivatedTrip(V):
-    pass
+        H = 1.3 + 0.74*exp(-H_K_ATP*ADP_i)
+        K_m = 35.8 + 17.9*ADP_i**(K_m_ATP)
+        f_ATP = 1.0/(1.0 + (ATP_i/K_m)**H)
 
-def osteoArthriticTrip():
-    pass
+        z_K = params.z_K
+        E_K = nernstPotential(z_K, K_i, K_o)
+        I_K_ATP = sigma*g_0*p_0*f_ATP*(V - E_K)
+    else:
+        I_K_ATP = 0.0
+    
+    return I_K_ATP
 
-def TripCurrent(V):
-    pass
 
+# External stimulation
 def externalStimulation(t):
-    pass
+    enable_I_stim = params.enable_I_stim
+    if (enable_I_stim == True):
+        t_cycle = params.t_cycle, t_stim = params.t_stim, I_stim_bar = params.I_stim_bar
+        I_stim = I_stim_bar*square(t*2*pi/t_cycle, t_stim/t_cycle)
+    else :
+        I_stim = 0.0
+    
+    return I_stim
 
-def ultraRapidlyRectifyingPotassiumHelper(V):
-    pass
+# FIXME: Implement the voltage-activated hydrogen channel
+def voltageActivatedHydrogen():
+    enable_I_ASIC = params.enable_I_ASIC
+    if (enable_I_ASIC == True):
+        I_ASIC = 0.0
+    else:
+        I_ASIC = 0.0
+    
+    return I_ASIC
+
+# Implement the TRPV4 channel
+def TripCurrent(V):
+    enable_I_TRPV4 = params.enable_I_TRPV4
+    if (enable_I_TRPV4 == True):
+        g_TRPV4 = params.g_TRPV4,  a_TRPV4 = params.a_TRPV4, b_TRPV4 = params.b_TRPV4
+        if(V < 0):
+            I_TRPV4 = g_TRPV4*(b_TRPV4*V + (1 - b_TRPV4)*a_TRPV4*(1 - (1 - (V/a_TRPV4))*(1 - (V/a_TRPV4))*(1-(V/a_TRPV4))))
+        else:
+            I_TRPV4 = 2*g_TRPV4*V**3
+    else:
+        I_TRPV4 = 0.0
+
+    return I_TRPV4
+
+# FIXME: Implement the stretch-activated TRP channel    
+def stretchActivatedTrip(V):
+    enable_I_TRP1 = params.enable_I_TRP1
+    if (enable_I_TRP1 == True):
+        g_TRP1 = params.g_TRP1, a_TRP1 = params.a_TRP1, b_TRP1 = params.b_TRP1
+        if(V < 0):
+            I_TRP1 = g_TRP1*(b_TRP1*V + (1 - b_TRP1)*a_TRP1*(1 - (1 - (V/a_TRP1))*(1 - (V/a_TRP1))*(1-(V/a_TRP1))))
+        else:
+            I_TRP1 = 2*g_TRP1*V**3
+    else:
+        I_TRP1 = 0.0
+
+    return I_TRP1
+
+# FIXME: Implement the osteo-arthritic TRP channel
+def osteoArthriticTrip():
+    enable_I_TRP2 = params.enable_I_TRP2
+    if (enable_I_TRP2 == True):
+        I_TRP2 = 0.0
+    else:
+        I_TRP2 = 0.0
