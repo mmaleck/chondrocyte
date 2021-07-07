@@ -54,7 +54,7 @@ def rhs(t, y, g_K_b_bar, P_K, Gmax):
 
     # Evolve calmodulin - Ca buffer
     cal_dot = 200000.0*Ca_i*(1.0 - cal) - 476.0*cal
-    # cal_dot = 200000.0*Ca_i*(1.0 - cal);
+    # cal_dot = 200000.0*Ca_i*(1.0 - cal)
 
     #Evolve the concentrations
     clamp_Na_i = params.clamp_Na_i
@@ -329,7 +329,7 @@ def DelayedRectifierPotassium(V):
     enable_I_K_DR = params.enable_I_K_DR
     if (enable_I_K_DR == True):
         g_K_DR = params.g_K_DR ,i_K_DR = params.i_K_DR, act_DR_shift = params.act_DR_shift 
-        alpha_K_DR = 1.0/(1.0 + exp(-(V + 26.7 + act_DR_shift)/4.1)); # Same as what I had. 3/3/16
+        alpha_K_DR = 1.0/(1.0 + exp(-(V + 26.7 + act_DR_shift)/4.1)) # Same as what I had. 3/3/16
         # E_K        = nernstPotential(z_K, K_i, K_o)
         E_K = -83
         I_K_DR = g_K_DR*alpha_K_DR*i_K_DR*(V - E_K)
@@ -340,9 +340,9 @@ def DelayedRectifierPotassium(V):
 
 # From Bob Clark et al., J. Physiol. 2011, Figure 4 - IKDR
 def ultrarapidlyRectifyingPotassium_ref(V, K_i, K_o):
-    G_K = 28.9;  # pS/pF
-    V_h = -26.7; # mV
-    S_h = 4.1;   # mV
+    G_K = 28.9  # pS/pF
+    V_h = -26.7 # mV
+    S_h = 4.1   # mV
     C_m = params.C_m, z_K = params.z_K
     E_K        = nernstPotential(z_K, K_i, K_o)
     I_K_ur_ref = G_K*(V - E_K)/(1 + exp(-(V - V_h)/S_h)) * C_m/1000.0
@@ -355,7 +355,7 @@ def twoPorePotassium(V, K_i_0, K_o, Q):
     enable_I_K_2pore = params.enable_I_K_2pore
     if (enable_I_K_2pore == True):
         F = params.F, R = params.R, T = params.T, z_K = params.z_K, I_K_2pore_0 = params.I_K_2pore_0
-        # OLD, via Harish: I_K_2pore = P_K*z_K^2*V*F^2/(R*T)*(K_i_0 - K_o*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0;
+        # OLD, via Harish: I_K_2pore = P_K*z_K^2*V*F^2/(R*T)*(K_i_0 - K_o*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
         I_K_2pore = 5*Q*sqrt(K_o/K_i_0)*V*(1 - (K_o/K_i_0)*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
     else:
         I_K_2pore = 0.0
@@ -395,11 +395,11 @@ def calciumActivatedPotassium(V, Ca_i):
         for m in range(5):
             alpha_BK(m) = A(m)*exp(+z_CO*FVonRT)
             beta_BK(m)  = B(m)*exp(-z_OC*FVonRT)
-            #delta(i) = C(i)*exp(+z_OI*FVonRT);
-            #gamma(i) = D(i)*exp(-z_IO*FVonRT);
+            #delta(i) = C(i)*exp(+z_OI*FVonRT)
+            #gamma(i) = D(i)*exp(-z_IO*FVonRT)
 
         # Build Markov Matrix
-        n = 10; 
+        n = 10
         M = np.zeros(n,n)
 
         # numbering scheme, offsets:  
@@ -413,8 +413,8 @@ def calciumActivatedPotassium(V, Ca_i):
             M(closed + k , open + k) = alpha_BK(k)
             M(open + k , closed + k) = beta_BK(k)
 
-            #M(open + i, inactivated + i) = delta(i);
-            #M(inactivated + i, open + i) = gamma(i);
+            #M(open + i, inactivated + i) = delta(i)
+            #M(inactivated + i, open + i) = gamma(i)
     
 
         #  Horizontal transitions
@@ -442,7 +442,7 @@ def calciumActivatedPotassium(V, Ca_i):
     #  Solve the system for Steady state at Ca_i_ss and V     
     # TODO: need to verify the following implementation   
         eq = null_space(M) #find nullspace for BK (equilibrium)
-        eq = eq/np.sum(eq); #Find unique equilibrium by scaling probabilities
+        eq = eq/np.sum(eq) #Find unique equilibrium by scaling probabilities
         #ode = @(t,y) ode_system(t,y,V)
         #[T,S] = ode15s(ode,tspan,eq)
         open = np.sum(eq[6:10]) #Calculate total steady-state open probability
@@ -458,8 +458,8 @@ def potassiumPump(V, K_i, K_o):
     enable_I_K_ATP = params.enable_I_K_ATP
     if (enable_I_K_ATP == True):
         sigma   = 0.6
-        g_0 = 0.05; #Testing, 3/16/16
-        #g_0     = 30.95/40; % FIXME: Somewhat arbitrary. Scaled this down to match Zhou/Ferrero.
+        g_0 = 0.05 #Testing, 3/16/16
+        #g_0     = 30.95/40 % FIXME: Somewhat arbitrary. Scaled this down to match Zhou/Ferrero.
         p_0     = 0.91
         H_K_ATP = -0.001
         K_m_ATP = 0.56
@@ -467,7 +467,7 @@ def potassiumPump(V, K_i, K_o):
 
         V_0 = params.V_0
         ADP_i = 10
-        ATP_i = V - V_0 + ADP_i; # FIXME: arbitrary
+        ATP_i = V - V_0 + ADP_i # FIXME: arbitrary
 
         H = 1.3 + 0.74*exp(-H_K_ATP*ADP_i)
         K_m = 35.8 + 17.9*ADP_i**(K_m_ATP)
@@ -538,3 +538,5 @@ def osteoArthriticTrip():
         I_TRP2 = 0.0
     else:
         I_TRP2 = 0.0
+
+    return I_TRP2
