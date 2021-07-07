@@ -2,38 +2,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 import params
-from chondrycyte import rhs
-
-'''
-following is just the idea how to solve ode. 
-'''
+from chondrocyte import *
 
 # Define time span
-t = (0, 5)
+t_final = params.t_final
+dt = params.dt
+t = np.linspace(0, t_final, int(t_final/dt))
 
 # Define initial condition vector
 y0 = (params.V_0, params.Na_i_0, params.K_i_0, params.Ca_i_0, params.H_i_0, params.Cl_i_0, params.a_ur_0, params.i_ur_0, params.vol_i_0, params.cal_0)
 
 # Define parameter vector
-g_K_bar = params.g_K_bar
+g_K_b_bar = params.g_K_b_bar
 P_K = params.P_K
 Gmax = params.Gmax
-params = (g_K_bar, P_K, Gmax)
+parameters = (g_K_b_bar, P_K, Gmax)
 
 # Call the ODE solver
-solution = solve_ivp(rhs, t, y0, args=params, max_step=0.01)
+solution = solve_ivp(rhs, t, y0, args=parameters, max_step=0.01)
 
 t = solution.t
 y = solution.y
 
 # Split up into individual states
-Mb, O2, MbO2 = y
+V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal  = y
 
-plt.plot(t, Mb, label='Myoglobin')
-plt.plot(t, O2, label='Oxygen')
-plt.plot(t, MbO2, label='Oxymyoglobin')
-
-plt.xlabel('Time')
-plt.ylabel('Concentrations')
-plt.legend()
-plt.show()
