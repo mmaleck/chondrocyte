@@ -138,7 +138,7 @@ function xdot = ode_rhs_parametrized(x, t, theta)
   global H_i_0;
   global Cl_i_0;
   
-  %global Na_i_clamp;
+  global Na_i_clamp;
 
   % Think this is volume from one of the UK papers...check later 3/16/2016
   osm_i_0 = Na_i_0 + K_i_0 + Ca_i_0 + H_i_0 + Cl_i_0;
@@ -214,11 +214,11 @@ function K_o = appliedPotassiumConcentration(t)
   else
     if (t <= 10)
       K_o = 5;
-    elseif (t > 10 & t <= 20)
+    elseif (t > 10 && t <= 20)
       K_o = 30;
-    elseif (t > 20 & t <= 30)
+    elseif (t > 20 && t <= 30)
       K_o = 75;
-    elseif (t > 30 & t <= 40)
+    elseif (t > 30 && t <= 40)
       K_o = 140;
     else
       K_o = 5;
@@ -256,14 +256,14 @@ function I_K_b = backgroundPotassium(V, K_i, K_o, g_K_b_bar)
 % Background chloride current from "Ionic channels of excitable
 % membranes," B. Hille. (pA)
 function I_Cl_b = backgroundChloride(V, Cl_i)
-    global enable_I_Cl_b;
-if (enable_I_Cl_b == true)
-  global z_Cl, global g_Cl_b_bar, global Cl_o;
-%E_Cl = nernstPotential(z_Cl, Cl_o, Cl_i);
-%E_Cl = -40.0;
-E_Cl = -65.0;
-I_Cl_b = g_Cl_b_bar*(V - E_Cl);
- else
+  global enable_I_Cl_b;
+  if (enable_I_Cl_b == true)
+    global z_Cl, global g_Cl_b_bar, global Cl_o;
+    %E_Cl = nernstPotential(z_Cl, Cl_o, Cl_i);
+    %E_Cl = -40.0;
+    E_Cl = -65.0;
+    I_Cl_b = g_Cl_b_bar*(V - E_Cl);
+  else
    I_Cl_b = 0.0;
   end
 %endfunction
