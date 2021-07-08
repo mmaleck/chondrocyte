@@ -138,7 +138,7 @@ function xdot = ode_rhs_parametrized(x, t, theta)
   global H_i_0;
   global Cl_i_0;
   
-  global Na_i_clamp;
+%   global Na_i_clamp;
 
   % Think this is volume from one of the UK papers...check later 3/16/2016
   osm_i_0 = Na_i_0 + K_i_0 + Ca_i_0 + H_i_0 + Cl_i_0;
