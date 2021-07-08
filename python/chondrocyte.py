@@ -103,7 +103,7 @@ def rhs(t, y, g_K_b_bar, P_K, Gmax):
     dosm = osm_i_0 - osm_o
 
     P_f = 10.2e-4
-    SA = 6.0^(2.0/3.0)*pi^(1.0/3.0)*vol_i^(2.0/3.0)
+    SA = 6.0**(2.0/3.0)*pi**(1.0/3.0)*vol_i**(2.0/3.0)
     V_W = 18.0
     vol_i_dot = P_f*SA*V_W*(osm_i - osm_o - dosm)
 
@@ -354,7 +354,7 @@ def twoPorePotassium(V, K_i_0, K_o, Q):
     enable_I_K_2pore = params.enable_I_K_2pore
     if (enable_I_K_2pore == True):
         F = params.F; R = params.R; T = params.T; z_K = params.z_K; I_K_2pore_0 = params.I_K_2pore_0
-        # OLD, via Harish: I_K_2pore = P_K*z_K^2*V*F^2/(R*T)*(K_i_0 - K_o*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
+        # OLD, via Harish: I_K_2pore = P_K*z_K**2*V*F**2/(R*T)*(K_i_0 - K_o*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
         I_K_2pore = 5*Q*sqrt(K_o/K_i_0)*V*(1 - (K_o/K_i_0)*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
     else:
         I_K_2pore = 0.0
@@ -380,9 +380,9 @@ def calciumActivatedPotassium(V, Ca_i):
         K_C = 17
         K_O = 0.5
 
-        A = 1/65*[0.659,3.955,25.05,129.2,261.1]
-        B = 4.5*[2651.7, 1767.8, 1244.0, 713.0, 160.0]
-
+        A = np.array([0.659,3.955,25.05,129.2,261.1])*(1/65)
+        B = np.array([2651.7, 1767.8, 1244.0, 713.0, 160.0])*(4.5)
+        
         z_CO = 0.718
         z_OC = 0.646
 
@@ -399,52 +399,48 @@ def calciumActivatedPotassium(V, Ca_i):
 
         # Build Markov Matrix
         n = 10
-        M = np.zeros(n,n)
+        M = np.zeros((n,n))
 
         # numbering scheme, offsets:  
         closed = 0
         open = 5
         #inactivated = 10
 
-        
         # Vertical transitions
         for k in range(5):
-            M[closed + k , open + k] = alpha_BK(k)
-            M[open + k , closed + k] = beta_BK(k)
+            M[closed + k , open + k] = alpha_BK[k]
+            M[open + k , closed + k] = beta_BK[k]
 
             #M(open + i, inactivated + i) = delta(i)
             #M(inactivated + i, open + i) = gamma(i)
     
-
         #  Horizontal transitions
         for jj in range(4):
             # on rates:
-            k_on = (5-jj)*Ca_i*convert_units
+            k_on = (4-jj)*Ca_i*convert_units
 
             M[closed + jj, closed + jj + 1] = k_on
             M[open + jj, open + jj + 1] = k_on
            #M(inactivated + i, inactivated + i + 1) = k_on
 
         # off rates:
-            M[closed + jj + 1, closed + jj] = jj*K_C
-            M[open + jj + 1, open + jj] = jj*K_O
+            M[closed + jj + 1, closed + jj] = (jj+1)*K_C
+            M[open + jj + 1, open + jj] = (jj+1)*K_O
         #  M(inactivated + i + 1, inactivated + i) = i*K_I
-               
 
     # Transpose since we have used above: M(from, to) = k_{from, to}
-    # TODO: need to check if the following is correct 
         M = np.transpose(M)
         for kk in range(n):
-            M[kk,kk] = -np.sum(M, axis=0)
-        
+            M[kk,kk] = -np.sum(M[:,kk], axis=0)
+    
         
     #  Solve the system for Steady state at Ca_i_ss and V     
-    # TODO: need to verify the following implementation   
+    # TODO: need to verify the following implementation  / null_space returns differnet vector from MATLAB but variable open is idnentical, so this should not affect the final result  
         eq = null_space(M) #find nullspace for BK (equilibrium)
         eq = eq/np.sum(eq) #Find unique equilibrium by scaling probabilities
         #ode = @(t,y) ode_system(t,y,V)
         #[T,S] = ode15s(ode,tspan,eq)
-        open = np.sum(eq[6:10]) #Calculate total steady-state open probability
+        open = np.sum(eq[5:10]) #Calculate total steady-state open probability
         I_BK = gBK*open*(V-E_K) #Calculate steady-state current in pA
         I_K_Ca_act = I_BK
         
