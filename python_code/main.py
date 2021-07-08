@@ -27,3 +27,4 @@ y = solution.y
 # Split up into individual states
 V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal  = y
 
+
