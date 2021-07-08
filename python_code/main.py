@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import solve_ivp
+from scipy.integrate.odepack import odeint
 import params
 from chondrocyte import *
 
@@ -19,12 +19,12 @@ Gmax = params.Gmax
 parameters = (g_K_b_bar, P_K, Gmax)
 
 # Call the ODE solver
-solution = solve_ivp(rhs, t, y0, args=parameters, max_step=0.01)
-
-t = solution.t
-y = solution.y
+# solution = solve_ivp(fun=rhs, t_span=(0, int(t_final)), y0=y0, method='RK45', t_eval=t, args=parameters)
+solution = odeint(rhs, y0, t, args=parameters)
 
 # Split up into individual states
-V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal  = y
+V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal  = np.hsplit(solution, 10)
+
+
 
 

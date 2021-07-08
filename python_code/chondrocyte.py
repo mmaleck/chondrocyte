@@ -4,7 +4,7 @@ from math import pi, log, ceil, exp, sqrt
 from scipy.signal import square
 from scipy.linalg import null_space
 
-def rhs(t, y, g_K_b_bar, P_K, Gmax):
+def rhs(y, t, g_K_b_bar, P_K, Gmax):
     V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal = y
 
     if (params.apply_Vm == True):
