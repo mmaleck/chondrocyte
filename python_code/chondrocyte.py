@@ -19,8 +19,8 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     K_o = appliedPotassiumConcentration(t)
 
     #Calculate background currents
-    I_Na_b = backgroundSodium(V, Na_i)
-    I_K_b = backgroundPotassium(V, K_i, K_o, g_K_b_bar)
+    I_Na_b = backgroundSodium(V, Na_i, None)
+    I_K_b = backgroundPotassium(V, K_i, K_o, g_K_b_bar, None)
     I_Cl_b = backgroundChloride(V, Cl_i)
     I_leak = backgroundLeak(V)
 
@@ -36,7 +36,8 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     I_K_DR = DelayedRectifierPotassium(V)[0]
     I_K_2pore = twoPorePotassium(V, K_i, K_o, P_K)
     I_K_Ca_act = calciumActivatedPotassium(V, Ca_i)
-    I_K_ATP = potassiumPump(V, K_i, K_o)
+    enable_I_K_ATP = params.enable_I_K_ATP
+    I_K_ATP = potassiumPump(V, K_i, K_o, None, enable_I_K_ATP)
   
     # Calculate other currents
     I_ASIC = voltageActivatedHydrogen()
@@ -173,11 +174,12 @@ def appliedPotassiumConcentration(t):
 
 # Background sodium current from "Ionic channels of excitable
 # membranes," B. Hille. (pA)
-def backgroundSodium(V, Na_i):
+def backgroundSodium(V, Na_i, E_Na):
     enable_I_Na_b = params.enable_I_Na_b
     if (enable_I_Na_b == True):
         z_Na = params.z_Na; g_Na_b_bar = params.g_Na_b_bar; Na_o = params.Na_o
-        E_Na = nernstPotential(z_Na, Na_i, Na_o)
+        if E_Na == None:
+            E_Na = nernstPotential(z_Na, Na_i, Na_o)
         I_Na_b = g_Na_b_bar*(V - E_Na)
     else:
         I_Na_b = 0.0
@@ -186,11 +188,12 @@ def backgroundSodium(V, Na_i):
 
 # Background potassium current from "Ionic channels of excitable
 # membranes," B. Hille. (pA)
-def backgroundPotassium(V, K_i, K_o, g_K_b_bar):
+def backgroundPotassium(V, K_i, K_o, g_K_b_bar, E_K):
     enable_I_K_b = params.enable_I_K_b
     if (enable_I_K_b == True):
         z_K = params.z_K
-        E_K = nernstPotential(z_K, K_i, K_o)
+        if E_K == None :
+            E_K = nernstPotential(z_K, K_i, K_o)
         I_K_b = g_K_b_bar*(V - E_K)
     else:
         I_K_b = 0.0
@@ -452,12 +455,11 @@ def calciumActivatedPotassium(V, Ca_i):
     
     return I_K_Ca_act
     
-def potassiumPump(V, K_i, K_o):
-    enable_I_K_ATP = params.enable_I_K_ATP
+def potassiumPump(V, K_i, K_o, E_K, enable_I_K_ATP):
     if (enable_I_K_ATP == True):
         sigma   = 0.6
-        g_0 = 0.05 #Testing, 3/16/16
-        #g_0     = 30.95/40 % FIXME: Somewhat arbitrary. Scaled this down to match Zhou/Ferrero.
+        # g_0 = 0.05 #Testing, 3/16/16
+        g_0     = 30.95/40 # FIXME: Somewhat arbitrary. Scaled this down to match Zhou/Ferrero.
         p_0     = 0.91
         H_K_ATP = -0.001
         K_m_ATP = 0.56
@@ -469,10 +471,10 @@ def potassiumPump(V, K_i, K_o):
 
         H = 1.3 + 0.74*exp(-H_K_ATP*ADP_i)
         K_m = 35.8 + 17.9*ADP_i**(K_m_ATP)
-        f_ATP = 1.0/(1.0 + (ATP_i/K_m)**H)
-
+        f_ATP = 1.0/(1.0 + (np.abs(ATP_i)/K_m)**H*np.sign(ATP_i))
         z_K = params.z_K
-        E_K = nernstPotential(z_K, K_i, K_o)
+        if E_K == None:
+            E_K = nernstPotential(z_K, K_i, K_o)
         
         I_K_ATP = sigma*g_0*p_0*f_ATP*(V - E_K)
     else:
