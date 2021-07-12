@@ -7,6 +7,9 @@ from scipy.linalg import null_space
 def rhs(y, t, g_K_b_bar, P_K, Gmax):
     V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal = y
 
+    # FIXME: Fixing the volume while debugging -- do not understand this part by KEI
+    vol_i = params.vol_i_0
+
     if (params.apply_Vm == True):
         V = appliedVoltage(t)
     else:
@@ -22,14 +25,15 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     I_leak = backgroundLeak(V)
 
      #Calculate pump and exchanger currents
-    I_NaK = sodiumPotassiumPump(V, Na_i, K_i, K_o)
-    I_NaCa = sodiumCalciumExchanger(V, Na_i, Ca_i)
+    Na_i_0 = params.Na_i_0
+    I_NaK = sodiumPotassiumPump(V, K_o, Na_i_0)
+    I_NaCa = sodiumCalciumExchanger(V, Ca_i, Na_i_0)
     I_NaH = sodiumHydrogenExchanger(Na_i, H_i)
     I_Ca_ATP = calciumPump(Ca_i)
 
     # Calculate potassium currents
     I_K_ur = ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, i_ur)
-    I_K_DR = DelayedRectifierPotassium(V)
+    I_K_DR = DelayedRectifierPotassium(V)[0]
     I_K_2pore = twoPorePotassium(V, K_i, K_o, P_K)
     I_K_Ca_act = calciumActivatedPotassium(V, Ca_i)
     I_K_ATP = potassiumPump(V, K_i, K_o)
@@ -88,7 +92,6 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     H_o = params.H_o
     Cl_o = params.Cl_o
 
-    Na_i_0 = params.Na_i_0
     K_i_0 = params.K_i_0
     Ca_i_0 = params.Ca_i_0
     H_i_0 = params.H_i_0
@@ -225,8 +228,8 @@ Atrial Cell: The Role of K+ Currents in Repolarization," A. Nygren, C.
 Fiset, L. Firek, J. W. Clark, D. S. Lindblad, R. B. Clark and W. R.
 Giles. Circ. Res. 1998; 82; 63-81 (Table 12, pp. 77) (pA)
 '''
-def sodiumPotassiumPump(V, Na_i, K_i, K_o):
-    enable_I_NaK = params.enable_I_NaK; Na_i_0 = params.Na_i_0
+def sodiumPotassiumPump(V, K_o, Na_i_0):
+    enable_I_NaK = params.enable_I_NaK
     if (enable_I_NaK == True):
         I_NaK_bar = params.I_NaK_bar; K_NaK_K = params.K_NaK_K; K_NaK_Na = params.K_NaK_Na
         I_NaK = I_NaK_bar*(K_o/(K_o + K_NaK_K)) \
@@ -243,12 +246,12 @@ Atrial Cell: The Role of K+ Currents in Repolarization," A. Nygren, C.
 Fiset, L. Firek, J. W. Clark, D. S. Lindblad, R. B. Clark and W. R.
 Giles. Circ. Res. 1998; 82; 63-81 (Table 13, pp. 77) (pA)
 '''
-def sodiumCalciumExchanger(V, Na_i, Ca_i):
+def sodiumCalciumExchanger(V, Ca_i, Na_i_0):
     enable_I_NaCa = params.enable_I_NaCa
     if (enable_I_NaCa == True):
         F = params.F; R = params.R; T = params.T
         Na_o = params.Na_o; Ca_o = params.Ca_o
-        K_NaCa = params.K_NaCa; gamma_Na = params.gamma_Na; d_NaCa = params.d_NaCa; Na_i_0 = params.Na_i_0
+        K_NaCa = params.K_NaCa; gamma_Na = params.gamma_Na; d_NaCa = params.d_NaCa
         NCX_scale = params.NCX_scale
 
         I_NaCa = NCX_scale*K_NaCa*(Na_i_0**3*Ca_o*exp(gamma_Na*V*F/(R*T)) \
@@ -335,7 +338,7 @@ def DelayedRectifierPotassium(V):
     else:
         I_K_DR = 0.0
     
-    return I_K_DR
+    return I_K_DR, alpha_K_DR
 
 # From Bob Clark et al., J. Physiol. 2011, Figure 4 - IKDR
 def ultrarapidlyRectifyingPotassium_ref(V, K_i, K_o):
@@ -458,7 +461,7 @@ def potassiumPump(V, K_i, K_o):
         p_0     = 0.91
         H_K_ATP = -0.001
         K_m_ATP = 0.56
-        surf    = 1 # not used, what is this variable ?
+        # surf    = 1 # not used, what is this variable ?
 
         V_0 = params.V_0
         ADP_i = 10
@@ -470,6 +473,7 @@ def potassiumPump(V, K_i, K_o):
 
         z_K = params.z_K
         E_K = nernstPotential(z_K, K_i, K_o)
+        
         I_K_ATP = sigma*g_0*p_0*f_ATP*(V - E_K)
     else:
         I_K_ATP = 0.0
