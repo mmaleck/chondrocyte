@@ -4,10 +4,22 @@ from math import pi, log, ceil, exp, sqrt
 from scipy.signal import square
 from scipy.linalg import null_space
 
+"""
+File name : chondrocyte.py 
+Author : Kei Yamamoto
+email : keiya@math.uio.no
+Data created : July, 2021
+Data last modified : 
+Python version : 3.8.2
+copyright :
+credits : 
+license : 
+"""
+
 def rhs(y, t, g_K_b_bar, P_K, Gmax):
     V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal = y
 
-    # FIXME: Fixing the volume while debugging -- do not understand this part by KEI
+    # FIXME: Fixing the volume while debugging -- do not understand this part by kei, 2021
     vol_i = params.vol_i_0
 
     if (params.apply_Vm == True):
@@ -19,38 +31,47 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     K_o = appliedPotassiumConcentration(t)
 
     #Calculate background currents
-    I_Na_b = backgroundSodium(V, Na_i, None)
-    I_K_b = backgroundPotassium(V, K_i, K_o, g_K_b_bar, None)
-    I_Cl_b = backgroundChloride(V, Cl_i)
-    I_leak = backgroundLeak(V)
+    enable_I_Na_b = params.enable_I_Na_b; enable_I_K_b = params.enable_I_K_b
+    enable_I_Cl_b = params.enable_I_Cl_b; enable_I_leak = params.enable_I_leak
+    I_Na_b = backgroundSodium(V, Na_i, None, enable_I_Na_b)
+    I_K_b = backgroundPotassium(V, K_i, K_o, g_K_b_bar, None, enable_I_K_b)
+    I_Cl_b = backgroundChloride(V, Cl_i, enable_I_Cl_b)
+    I_leak = backgroundLeak(V, enable_I_leak)
 
-     #Calculate pump and exchanger currents
-    Na_i_0 = params.Na_i_0
-    I_NaK = sodiumPotassiumPump(V, K_o, Na_i_0)
-    I_NaCa = sodiumCalciumExchanger(V, Ca_i, Na_i_0)
-    I_NaH = sodiumHydrogenExchanger(Na_i, H_i)
-    I_Ca_ATP = calciumPump(Ca_i)
+    #Calculate pump and exchanger currents
+    Na_i_0 = params.Na_i_0; enable_I_NaK = params.enable_I_NaK
+    enable_I_NaCa = params.enable_I_NaCa; enable_I_NaH = params.enable_I_NaH
+    enable_I_Ca_ATP = params.enable_I_Ca_ATP
+    I_NaK = sodiumPotassiumPump(V, K_o, Na_i_0, enable_I_NaK)
+    I_NaCa = sodiumCalciumExchanger(V, Ca_i, Na_i_0, enable_I_NaCa)
+    I_NaH = sodiumHydrogenExchanger(Na_i, H_i, enable_I_NaH)
+    I_Ca_ATP = calciumPump(Ca_i, enable_I_Ca_ATP)
 
     # Calculate potassium currents
-    I_K_ur = ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, i_ur)
-    I_K_DR = DelayedRectifierPotassium(V)[0]
-    I_K_2pore = twoPorePotassium(V, K_i, K_o, P_K)
-    I_K_Ca_act = calciumActivatedPotassium(V, Ca_i)
+    enable_I_K_ur = params.enable_I_K_ur; enable_I_K_DR = params.enable_I_K_DR
+    enable_I_K_2pore = params.enable_I_K_2pore; enable_I_K_Ca_act = params.enable_I_K_Ca_act
     enable_I_K_ATP = params.enable_I_K_ATP
+    I_K_ur = ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, i_ur, enable_I_K_ur)
+    I_K_DR = DelayedRectifierPotassium(V, enable_I_K_DR)[0]
+    I_K_2pore = twoPorePotassium(V, K_i, K_o, P_K, enable_I_K_2pore)
+    I_K_Ca_act = calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act)
     I_K_ATP = potassiumPump(V, K_i, K_o, None, enable_I_K_ATP)
   
     # Calculate other currents
-    I_ASIC = voltageActivatedHydrogen()
-    I_TRP1 = stretchActivatedTrip(V)
-    I_TRP2 = osteoArthriticTrip()
-    I_TRPV4 = TripCurrent(V)
-    I_stim = externalStimulation(t)
+    enable_I_ASIC = params.enable_I_ASIC; enable_I_TRP1 = params.enable_I_TRP1
+    enable_I_TRP2 = params.enable_I_TRP2; enable_I_TRPV4 = params.enable_I_TRPV4
+    enable_I_stim = params.enable_I_stim
+    I_ASIC = voltageActivatedHydrogen(enable_I_ASIC)
+    I_TRP1 = stretchActivatedTrip(V, enable_I_TRP1)
+    I_TRP2 = osteoArthriticTrip(enable_I_TRP2)
+    I_TRPV4 = TripCurrent(V, enable_I_TRPV4)
+    I_stim = externalStimulation(t, enable_I_stim)
 
     #Total ionic contribution (pA)
     I_i = I_Na_b + I_K_b + I_Cl_b + I_leak \
-      + I_NaK + I_NaCa + I_Ca_ATP \
-      + I_K_ur + I_K_DR + I_K_2pore + I_K_Ca_act + I_K_ATP \
-      + I_ASIC + I_TRP1 + I_TRP2 + I_TRPV4
+        + I_NaK + I_NaCa + I_Ca_ATP \
+        + I_K_ur + I_K_DR + I_K_2pore + I_K_Ca_act + I_K_ATP \
+        + I_ASIC + I_TRP1 + I_TRP2 + I_TRPV4
 
     # Determine incremental changes in evolving quantities
     F = params.F
@@ -75,10 +96,10 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
         K_i_dot  = - (I_K_b  - 2*I_NaK + I_K_ur + I_K_DR + I_K_2pore + I_K_Ca_act + I_K_ATP + 0.5*I_leak)/(vol_i*F)
         #K_i_dot  = - (I_K_b  - 2*I_NaK + I_K_ur + I_K_DR + I_K_2pore + I_K_Ca_act + I_K_ATP)/(vol_i*F)
     
-    # Ca_i_dot =   -(I_Ca_ATP - 2*I_NaCa + I_TRPV4)/(2*vol_i*F) - 0.045*cal_dot
     Ca_i_dot =   -(I_Ca_ATP - 2*I_NaCa + I_TRPV4)/(2*vol_i*F) - 0.045*cal_dot
-    #H_i_dot =  - (I_NaH)/(vol_i*F)
+    # Ca_i_dot =   -(I_Ca_ATP - 2*I_NaCa + I_TRPV4)/(2*vol_i*F) - 0.045*cal_dot
     H_i_dot = 0
+    #H_i_dot =  - (I_NaH)/(vol_i*F)
     Cl_i_dot =  (I_Cl_b)/(vol_i*F)
     #Cl_i_dot = 0
 
@@ -86,7 +107,6 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
 
     a_ur_dot = (a_ur_inf - a_ur)/tau_a_ur
     i_ur_dot = (i_ur_inf - i_ur)/tau_i_ur
-
 
     Na_o = params.Na_o
     Ca_o = params.Ca_o
@@ -97,10 +117,9 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     Ca_i_0 = params.Ca_i_0
     H_i_0 = params.H_i_0
     Cl_i_0 = params.Cl_i_0
-    Na_i_clamp = params.Na_i_clamp
+    # Na_i_clamp = params.Na_i_clamp
 
-
-   #Think this is volume from one of the UK papers...check later 3/16/2016
+    #Think this is volume from one of the UK papers...check later 3/16/2016
     osm_i_0 = Na_i_0 + K_i_0 + Ca_i_0 + H_i_0 + Cl_i_0
     osm_i = Na_i + K_i + Ca_i + H_i + Cl_i
     osm_o = Na_o + K_o + Ca_o + H_o + Cl_o
@@ -128,15 +147,14 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     # Return RHS as sequence
     return (V_dot, Na_i_dot, K_i_dot, Ca_i_dot, H_i_dot, Cl_i_dot, a_ur_dot, i_ur_dot, vol_i_dot, cal_dot)
 
-
-# Potential of an ion X across the membrane (mV).
 def nernstPotential(z, X_i, X_o):
-  R = params.R; T = params.T; F = params.F
-  E_X = (R*T)/(z*F)*log(X_o/X_i)
-  return E_X
+    """Potential of an ion X across the membrane (mV)."""
+    R = params.R; T = params.T; F = params.F
+    E_X = (R*T)/(z*F)*log(X_o/X_i)
+    return E_X
 
-# Applied voltage (mV)
 def appliedVoltage(t):
+    """Applied voltage (mV)"""
     clamp_Vm = params.clamp_Vm; ramp_Vm = params.ramp_Vm; step_Vm = params.step_Vm
     if (clamp_Vm == True):
         V_0 = params.V_0
@@ -146,7 +164,6 @@ def appliedVoltage(t):
         V = V_0 + (V_final - V_0)*t/t_final
     elif (step_Vm == True):
         t_cycle = params.t_cycle; t_stim = params.t_stim
-        # the following needs to be verified 
         V = (ceil((t - 30)/t_cycle)*square((t - 30)*2*pi/t_cycle, t_stim/t_cycle) + ceil((t - 30)/t_cycle))/2*10 - 90
 
     if (V == 0):
@@ -172,10 +189,10 @@ def appliedPotassiumConcentration(t):
 
     return K_o
 
-# Background sodium current from "Ionic channels of excitable
-# membranes," B. Hille. (pA)
-def backgroundSodium(V, Na_i, E_Na):
-    enable_I_Na_b = params.enable_I_Na_b
+def backgroundSodium(V, Na_i, E_Na, enable_I_Na_b):
+    """Background sodium current from "Ionic channels of excitable
+    membranes," B. Hille. (pA)
+    """
     if (enable_I_Na_b == True):
         z_Na = params.z_Na; g_Na_b_bar = params.g_Na_b_bar; Na_o = params.Na_o
         if E_Na == None:
@@ -186,10 +203,10 @@ def backgroundSodium(V, Na_i, E_Na):
 
     return I_Na_b
 
-# Background potassium current from "Ionic channels of excitable
-# membranes," B. Hille. (pA)
-def backgroundPotassium(V, K_i, K_o, g_K_b_bar, E_K):
-    enable_I_K_b = params.enable_I_K_b
+def backgroundPotassium(V, K_i, K_o, g_K_b_bar, E_K, enable_I_K_b):
+    """Background potassium current from "Ionic channels of excitable
+    membranes," B. Hille. (pA)
+    """
     if (enable_I_K_b == True):
         z_K = params.z_K
         if E_K == None :
@@ -200,10 +217,10 @@ def backgroundPotassium(V, K_i, K_o, g_K_b_bar, E_K):
 
     return I_K_b
 
-# Background chloride current from "Ionic channels of excitable
-# membranes," B. Hille. (pA)
-def backgroundChloride(V, Cl_i):
-    enable_I_Cl_b = params.enable_I_Cl_b
+def backgroundChloride(V, Cl_i, enable_I_Cl_b):
+    """Background chloride current from "Ionic channels of excitable
+    membranes," B. Hille. (pA)
+    """
     if (enable_I_Cl_b == True):
         z_Cl = params.z_Cl; g_Cl_b_bar = params.g_Cl_b_bar; Cl_o = params.Cl_o
         #E_Cl = nernstPotential(z_Cl, Cl_o, Cl_i)
@@ -215,8 +232,7 @@ def backgroundChloride(V, Cl_i):
 
     return I_Cl_b
 
-def backgroundLeak(V):
-    enable_I_leak = params.enable_I_leak
+def backgroundLeak(V, enable_I_leak):
     if (enable_I_leak == True):
         g_leak = params.g_leak
         I_leak = g_leak*V
@@ -225,14 +241,13 @@ def backgroundLeak(V):
     
     return I_leak
 
-'''
-Sodium-potassium pump from "Mathematical Model of an Adult Human
-Atrial Cell: The Role of K+ Currents in Repolarization," A. Nygren, C.
-Fiset, L. Firek, J. W. Clark, D. S. Lindblad, R. B. Clark and W. R.
-Giles. Circ. Res. 1998; 82; 63-81 (Table 12, pp. 77) (pA)
-'''
-def sodiumPotassiumPump(V, K_o, Na_i_0):
-    enable_I_NaK = params.enable_I_NaK
+
+def sodiumPotassiumPump(V, K_o, Na_i_0, enable_I_NaK):
+    """Sodium-potassium pump from "Mathematical Model of an Adult Human
+    Atrial Cell: The Role of K+ Currents in Repolarization," A. Nygren, C.
+    Fiset, L. Firek, J. W. Clark, D. S. Lindblad, R. B. Clark and W. R.
+    Giles. Circ. Res. 1998; 82; 63-81 (Table 12, pp. 77) (pA)
+    """
     if (enable_I_NaK == True):
         I_NaK_bar = params.I_NaK_bar; K_NaK_K = params.K_NaK_K; K_NaK_Na = params.K_NaK_Na
         I_NaK = I_NaK_bar*(K_o/(K_o + K_NaK_K)) \
@@ -243,14 +258,12 @@ def sodiumPotassiumPump(V, K_o, Na_i_0):
 
     return I_NaK
 
-'''
-Sodium-calcium exchanger from "Mathematical Model of an Adult Human
-Atrial Cell: The Role of K+ Currents in Repolarization," A. Nygren, C.
-Fiset, L. Firek, J. W. Clark, D. S. Lindblad, R. B. Clark and W. R.
-Giles. Circ. Res. 1998; 82; 63-81 (Table 13, pp. 77) (pA)
-'''
-def sodiumCalciumExchanger(V, Ca_i, Na_i_0):
-    enable_I_NaCa = params.enable_I_NaCa
+def sodiumCalciumExchanger(V, Ca_i, Na_i_0, enable_I_NaCa):
+    """Sodium-calcium exchanger from "Mathematical Model of an Adult Human
+    Atrial Cell: The Role of K+ Currents in Repolarization," A. Nygren, C.
+    Fiset, L. Firek, J. W. Clark, D. S. Lindblad, R. B. Clark and W. R.
+    Giles. Circ. Res. 1998; 82; 63-81 (Table 13, pp. 77) (pA)
+    """
     if (enable_I_NaCa == True):
         F = params.F; R = params.R; T = params.T
         Na_o = params.Na_o; Ca_o = params.Ca_o
@@ -265,14 +278,12 @@ def sodiumCalciumExchanger(V, Ca_i, Na_i_0):
     
     return I_NaCa
 
-'''
-Sodium-hydrogen exchanger from "A Model of Na+/H+ Exchanger and Its
-Central Role in Regulation of pH and Na+ in Cardiac Myocytes," Chae
-Young Cha, Chiaki Oka, Yung E. Earm, Shigeo Wakabayashi, and Akinori
-Noma. Biophysical Journal 2009; 97; 2674-2683 (pp. 2675) (pA)
-'''
-def sodiumHydrogenExchanger(Na_i, H_i):
-    enable_I_NaH = params.enable_I_NaH
+def sodiumHydrogenExchanger(Na_i, H_i, enable_I_NaH):
+    """Sodium-hydrogen exchanger from "A Model of Na+/H+ Exchanger and Its
+    Central Role in Regulation of pH and Na+ in Cardiac Myocytes," Chae
+    Young Cha, Chiaki Oka, Yung E. Earm, Shigeo Wakabayashi, and Akinori
+    Noma. Biophysical Journal 2009; 97; 2674-2683 (pp. 2675) (pA)
+    """
     if (enable_I_NaH == True):
         n_H = params.n_H; K_H_i_mod = params.K_H_i_mod
         k1_p = params.k1_p; k1_m = params.k1_m; k2_p = params.k2_p; k2_m = params.k2_m
@@ -291,9 +302,9 @@ def sodiumHydrogenExchanger(Na_i, H_i):
     
     return I_NaH
 
-# Calcium pump from Nygren et al. (pA)
-def calciumPump(Ca_i):
-    enable_I_Ca_ATP = params.enable_I_Ca_ATP
+
+def calciumPump(Ca_i, enable_I_Ca_ATP):
+    """Calcium pump from Nygren et al. (pA)"""
     if (enable_I_Ca_ATP == True):
         I_Ca_ATP_bar = params.I_Ca_ATP_bar; k_Ca_ATP = params.k_Ca_ATP
         I_Ca_ATP = I_Ca_ATP_bar*(Ca_i/(Ca_i + k_Ca_ATP))
@@ -302,14 +313,12 @@ def calciumPump(Ca_i):
 
     return I_Ca_ATP
 
-'''
-Ultra-rapidly rectifying potassium channel from "Action potential rate
-dependence in the human atrial myocyte," M. M. Maleckar, J. L.
-Greenstein, W. R. Giles and N. A. Trayanova. Am. J. Physiol. Heart.
-Circ. Physiol. 2009; 297; 1398-1410 (Appendix, pp. 1408) (pA)
-'''
-
 def ultraRapidlyRectifyingPotassiumHelper(V):
+    """Ultra-rapidly rectifying potassium channel from "Action potential rate
+    dependence in the human atrial myocyte," M. M. Maleckar, J. L.
+    Greenstein, W. R. Giles and N. A. Trayanova. Am. J. Physiol. Heart.
+    Circ. Physiol. 2009; 297; 1398-1410 (Appendix, pp. 1408) (pA)
+    """
     a_ur_inf   = 1.0/(1.0 + exp(-(V + 26.7)/4.1))
     i_ur_inf   = 1.0/(1.0 + exp((V - 30.0)/10.0))
     tau_a_ur   = 0.005/(1.0 + exp((V + 5.0)/12.0))
@@ -317,11 +326,10 @@ def ultraRapidlyRectifyingPotassiumHelper(V):
 
     return a_ur_inf, i_ur_inf, tau_a_ur, tau_i_ur
 
-def ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, i_ur):
-    enable_I_K_ur = params.enable_I_K_ur
+def ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, i_ur, enable_I_K_ur):
     if (enable_I_K_ur == True):
         z_K = params.z_K; g_K_ur = params.g_K_ur
-        # why this function is called ?
+        # why this function is called ? (by Kei, 2021)
         a_ur_inf, i_ur_inf, tau_a_ur, tau_i_ur = ultraRapidlyRectifyingPotassiumHelper(V)
         E_K        = nernstPotential(z_K, K_i, K_o)
         I_K_ur     = g_K_ur*a_ur*(V - E_K)
@@ -329,9 +337,8 @@ def ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, i_ur):
         I_K_ur = 0.0
     return I_K_ur
    
-# Delayed rectifer potassium channel from Clark, et al (pA)
-def DelayedRectifierPotassium(V):
-    enable_I_K_DR = params.enable_I_K_DR
+def DelayedRectifierPotassium(V, enable_I_K_DR):
+    """ Delayed rectifer potassium channel from Clark, et al (pA)"""
     if (enable_I_K_DR == True):
         g_K_DR = params.g_K_DR; i_K_DR = params.i_K_DR; act_DR_shift = params.act_DR_shift 
         alpha_K_DR = 1.0/(1.0 + exp(-(V + 26.7 + act_DR_shift)/4.1)) # Same as what I had. 3/3/16
@@ -343,8 +350,8 @@ def DelayedRectifierPotassium(V):
     
     return I_K_DR, alpha_K_DR
 
-# From Bob Clark et al., J. Physiol. 2011, Figure 4 - IKDR
 def ultrarapidlyRectifyingPotassium_ref(V, K_i, K_o):
+    """ From Bob Clark et al., J. Physiol. 2011, Figure 4 - IKDR"""
     G_K = 28.9  # pS/pF
     V_h = -26.7 # mV
     S_h = 4.1   # mV
@@ -354,10 +361,9 @@ def ultrarapidlyRectifyingPotassium_ref(V, K_i, K_o):
 
     return I_K_ur_ref
 
-# Two-pore potassium current - novel?; modeled as a simple Boltzmann
-# relationship via GHK (pA)
-def twoPorePotassium(V, K_i_0, K_o, Q):
-    enable_I_K_2pore = params.enable_I_K_2pore
+def twoPorePotassium(V, K_i_0, K_o, Q, enable_I_K_2pore):
+    """ Two-pore potassium current - novel?; modeled as a simple Boltzmann
+    relationship via GHK (pA)"""
     if (enable_I_K_2pore == True):
         F = params.F; R = params.R; T = params.T; z_K = params.z_K; I_K_2pore_0 = params.I_K_2pore_0
         # OLD, via Harish: I_K_2pore = P_K*z_K**2*V*F**2/(R*T)*(K_i_0 - K_o*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
@@ -367,12 +373,9 @@ def twoPorePotassium(V, K_i_0, K_o, Q):
 
     return I_K_2pore
 
-'''
-Calcium-activated potassium current - Sun, et al formulations (pA)
-FIXME: Check the following carefully
-'''
-def calciumActivatedPotassium(V, Ca_i):
-    enable_I_K_Ca_act = params.enable_I_K_Ca_act
+# FIXME: Check the following carefully
+def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
+    """Calcium-activated potassium current - Sun, et al formulations (pA)"""
     if (enable_I_K_Ca_act == True):
         F = params.F; R = params.R; T = params.T
         # I_K_Ca_act (new version) (pA), with converted Ca_i units for model
@@ -439,9 +442,7 @@ def calciumActivatedPotassium(V, Ca_i):
         for kk in range(n):
             M[kk,kk] = -np.sum(M[:,kk], axis=0)
     
-        
     #  Solve the system for Steady state at Ca_i_ss and V     
-    # TODO: need to verify the following implementation  / null_space returns differnet vector from MATLAB but variable open is idnentical, so this should not affect the final result  
         eq = null_space(M) #find nullspace for BK (equilibrium)
         eq = eq/np.sum(eq) #Find unique equilibrium by scaling probabilities
         #ode = @(t,y) ode_system(t,y,V)
@@ -482,10 +483,8 @@ def potassiumPump(V, K_i, K_o, E_K, enable_I_K_ATP):
     
     return I_K_ATP
 
-
-# External stimulation
-def externalStimulation(t):
-    enable_I_stim = params.enable_I_stim
+def externalStimulation(t, enable_I_stim):
+    """# External stimulation"""
     if (enable_I_stim == True):
         t_cycle = params.t_cycle; t_stim = params.t_stim; I_stim_bar = params.I_stim_bar
         I_stim = I_stim_bar*square(t*2*pi/t_cycle, t_stim/t_cycle)
@@ -495,8 +494,7 @@ def externalStimulation(t):
     return I_stim
 
 # FIXME: Implement the voltage-activated hydrogen channel
-def voltageActivatedHydrogen():
-    enable_I_ASIC = params.enable_I_ASIC
+def voltageActivatedHydrogen(enable_I_ASIC):
     if (enable_I_ASIC == True):
         I_ASIC = 0.0
     else:
@@ -504,9 +502,8 @@ def voltageActivatedHydrogen():
     
     return I_ASIC
 
-# Implement the TRPV4 channel
-def TripCurrent(V):
-    enable_I_TRPV4 = params.enable_I_TRPV4
+def TripCurrent(V, enable_I_TRPV4):
+    """Implement the TRPV4 channel"""
     if (enable_I_TRPV4 == True):
         g_TRPV4 = params.g_TRPV4;  a_TRPV4 = params.a_TRPV4; b_TRPV4 = params.b_TRPV4
         if(V < 0):
@@ -519,8 +516,7 @@ def TripCurrent(V):
     return I_TRPV4
 
 # FIXME: Implement the stretch-activated TRP channel    
-def stretchActivatedTrip(V):
-    enable_I_TRP1 = params.enable_I_TRP1
+def stretchActivatedTrip(V, enable_I_TRP1):
     if (enable_I_TRP1 == True):
         g_TRP1 = params.g_TRP1; a_TRP1 = params.a_TRP1; b_TRP1 = params.b_TRP1
         if(V < 0):
@@ -532,9 +528,8 @@ def stretchActivatedTrip(V):
 
     return I_TRP1
 
-# FIXME: Implement the osteo-arthritic TRP channel
-def osteoArthriticTrip():
-    enable_I_TRP2 = params.enable_I_TRP2
+# FIXME: Implement the osteo-arthritic TRP channel 
+def osteoArthriticTrip(enable_I_TRP2):
     if (enable_I_TRP2 == True):
         I_TRP2 = 0.0
     else:
