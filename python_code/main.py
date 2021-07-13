@@ -5,6 +5,18 @@ import matplotlib.pyplot as plt
 from scipy.integrate.odepack import odeint
 import os
 
+"""
+File name : main.py 
+Author : Kei Yamamoto
+email : keiya@math.uio.no
+Data created : July, 2021
+Data last modified : 
+Python version : 3.8.2
+copyright :
+credits : 
+license : 
+"""
+
 path = os.getcwd()
 path = os.path.join(path, "result")
 
@@ -43,7 +55,6 @@ def main():
      
     longth = V.shape[0]
 
-
     # get steady-state ion concentrations
     Ca_i_ss = Ca_i[longth-1]
     K_i_ss = K_i[longth-1]
@@ -66,7 +77,11 @@ def main():
                     "I_K_b" : np.zeros(V_step_size),
                     "I_Cl_b" : np.zeros(V_step_size),
                     "I_leak" : np.zeros(V_step_size),
-                    "I_bq" : np.zeros(V_step_size)
+                    "I_bq" : np.zeros(V_step_size),
+                    "I_BK" : np.zeros(V_step_size),
+                    "I_TRPV4" : np.zeros(V_step_size),
+                    "I_RMP" : np.zeros(V_step_size), 
+                    "I_total" : np.zeros(V_step_size)
                     }
 
     # read some parameters outside for loop 
@@ -91,7 +106,7 @@ def main():
         current_dict["I_Ca_ATP"][i] = calciumPump(Ca_i_ss)
 
         # % I_K_ATP (pA?) Zhou/Ferrero, Biophys J, 2009
-        # TODO: it is complex number in the beginning of iterations, check  if its fine
+        # FIXME: it is complex number in the beginning of iterations. need to fix (by Kei, 2021)
         E_K = -94.02; # From Zhou, et al
         current_dict["I_K_ATP"][i] = potassiumPump(VV[i], 0, K_o, E_K, True)
 
@@ -111,19 +126,37 @@ def main():
         current_dict["I_Cl_b"][i] = backgroundChloride(VV[i], None)/C_m
         
         # I_leak (pA); not printed, added to I_bg
-        # I_leak is zero 
         current_dict["I_leak"][i] = backgroundLeak(VV[i])
 
         #  I_bg (pA; pA/pF in print)
-        # TODO : need to verify the follwoing  part 
         current_dict["I_bq"][i] = current_dict["I_Na_b"][i] + current_dict["I_K_b"][i] + current_dict["I_Cl_b"][i] + current_dict["I_leak"][i]
-        current_dict["I_bq"][i] = current_dict["I_bq"][i]/C_m
 
-        
-       
+        # I_K_Ca_act (new version) (pA), with converted Ca_i units for model,
+        # print as pA/pF
+        # TODO : not yet verified (by Kei, 2021)
+        current_dict["I_BK"][i] = calciumActivatedPotassium(VV[i], Ca_i_ss)
 
+        # I TRPV4 (pA; pA/pF in print)
+        current_dict["I_TRPV4"][i] = TripCurrent(VV[i], True)/C_m
 
-    from IPython import embed; embed(); exit(1)
+        # I_RMP (pA; pA/pF in print)
+        # TODO: not yet veroified (by Kei, 2021)
+        current_dict["I_RMP"][i] = current_dict["I_bq"][i] + current_dict["I_BK"][i] + current_dict["I_K_DR"][i] \
+                                   + current_dict["I_NaCa"][i] + current_dict["I_NaK"][i] + current_dict["I_K_2pore"][i]
+
+        # I_total (print in pA/pF - check all the currents summed are in pA)
+        # TODO: not yet verifiyed (by Kei, 2021)
+        current_dict["I_total"][i] = current_dict["I_NaK"][i]*C_m + current_dict["I_NaCa"][i]*C_m + current_dict["I_Ca_ATP"][i] + \
+                                     current_dict["I_K_DR"][i]*C_m +  current_dict["I_K_2pore"][i]*C_m + current_dict["I_K_ATP"][i] + \
+                                     current_dict["I_BK"][i] + current_dict["I_Na_b"][i]*C_m + current_dict["I_K_b"][i]*C_m + \
+                                     current_dict["I_Cl_b"][i]*C_m + current_dict["I_leak"][i] + current_dict["I_TRPV4"][i]*C_m
+    
+    slope_G = (current_dict["I_bq"][-1]-current_dict["I_bq"][0])/(VV[-1]-VV[0]) # pA/mV = nS
+    R = 1/slope_G # = GOhms
+    print("slope_G = {}, R={}".format(slope_G, R))
+    
+    # this is added for debugging. Easier to debug with ipython than using print statement. feel free to remove.
+    # from IPython import embed; embed(); exit(1)
         
 
 if __name__ == "__main__":
