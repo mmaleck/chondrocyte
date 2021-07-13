@@ -33,12 +33,14 @@ def main():
     # Define initial condition vector
     V_0 = params.V_0; Na_i_0 = params.Na_i_0; K_i_0 = params.K_i_0; Ca_i_0 = params.Ca_i_0; H_i_0 = params.H_i_0; Cl_i_0 = params.Cl_i_0
     a_ur_0 = params.a_ur_0; i_ur_0 = params.i_ur_0; vol_i_0 = params.vol_i_0; cal_0 = params.cal_0
+
     y0 = (V_0, Na_i_0, K_i_0, Ca_i_0, H_i_0, Cl_i_0, a_ur_0, i_ur_0, vol_i_0, cal_0)
 
     # Define parameter vector
     g_K_b_bar = params.g_K_b_bar
     P_K = params.P_K
     Gmax = params.Gmax
+    
     parameters = (g_K_b_bar, P_K, Gmax)
 
     # Call the ODE solver
@@ -84,11 +86,11 @@ def main():
                     "I_total" : np.zeros(V_step_size)
                     }
 
-    # read some parameters outside for loop 
-    C_m = params.C_m
-    K_o = params.K_o
-    Na_i_clamp = params.Na_i_clamp
-    Q = params.Q
+    # read/declare some parameters outside for loop 
+    C_m = params.C_m; K_o = params.K_o
+    Na_i_clamp = params.Na_i_clamp; Q = params.Q 
+    E_K = -94.02 # From Zhou, et al
+    E_Na = 55.0; E_K = -83 
 
     for i in range(V_step_size):
 
@@ -107,7 +109,6 @@ def main():
 
         # % I_K_ATP (pA?) Zhou/Ferrero, Biophys J, 2009
         # FIXME: it is complex number in the beginning of iterations. need to fix (by Kei, 2021)
-        E_K = -94.02; # From Zhou, et al
         current_dict["I_K_ATP"][i] = potassiumPump(VV[i], 0, K_o, E_K, True)
 
         # I_K_2pore modeled as a simple Boltzmann
@@ -115,11 +116,9 @@ def main():
         current_dict["I_K_2pore"][i] = twoPorePotassium(VV[i], K_i_0, K_o, Q)/C_m
 
         # I_Na_b (pA; pA/pF in print) 
-        E_Na = 55.0
         current_dict["I_Na_b"][i] = backgroundSodium(VV[i], None, E_Na)/C_m
 
         # I_K_b (pA; pA/pF in print)
-        E_K = -83
         current_dict["I_K_b"][i] = backgroundPotassium(VV[i], None, None, g_K_b_bar, E_K)/C_m
         
         # I_Cl_b (pA; pA/pF in print)
