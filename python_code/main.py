@@ -40,7 +40,7 @@ def main():
     g_K_b_bar = params.g_K_b_bar
     P_K = params.P_K
     Gmax = params.Gmax
-    
+
     parameters = (g_K_b_bar, P_K, Gmax)
 
     # Call the ODE solver
@@ -91,41 +91,48 @@ def main():
     Na_i_clamp = params.Na_i_clamp; Q = params.Q 
     E_K = -94.02 # From Zhou, et al
     E_Na = 55.0; E_K = -83 
+    enable_I_K_DR = params.enable_I_K_DR; enable_I_NaK = params.enable_I_NaK
+    enable_I_NaK = params.enable_I_NaK; enable_I_Ca_ATP = params.enable_I_Ca_ATP
+    enable_I_K_2pore = params.enable_I_K_2pore; enable_I_Na_b = params.enable_I_Na_b
+    enable_I_K_b = params.enable_I_K_b; enable_I_Cl_b = params.enable_I_Cl_b
+    enable_I_leak = params.enable_I_leak; enable_I_K_Ca_act = params.enable_I_K_Ca_act
 
     for i in range(V_step_size):
 
         # I_K_DR (printed in pA/pF)
-        current_dict["I_K_DR"][i], current_dict["alpha_K_DR"][i] = DelayedRectifierPotassium(VV[i])
+        
+        current_dict["I_K_DR"][i], current_dict["alpha_K_DR"][i] = DelayedRectifierPotassium(VV[i], enable_I_K_DR)
         current_dict["I_K_DR"][i] = (current_dict["I_K_DR"][i])/C_m
         
         # I_Na_K (in pA; printed IV pA/pF)
-        current_dict["I_NaK"][i]= sodiumPotassiumPump(VV[i], K_o, Na_i_clamp)/C_m
+        
+        current_dict["I_NaK"][i]= sodiumPotassiumPump(VV[i], K_o, Na_i_clamp,enable_I_NaK)/C_m
 
         # I_NaCa (in pA; printed IV pA/pF)
-        current_dict["I_NaCa"][i] = sodiumCalciumExchanger(VV[i], Ca_i_0, Na_i_clamp)/C_m
+        current_dict["I_NaCa"][i] = sodiumCalciumExchanger(VV[i], Ca_i_0, Na_i_clamp, enable_I_NaK)/C_m
 
         # I_Ca_ATP (pA)
-        current_dict["I_Ca_ATP"][i] = calciumPump(Ca_i_ss)
+        current_dict["I_Ca_ATP"][i] = calciumPump(Ca_i_ss, enable_I_Ca_ATP)
 
         # % I_K_ATP (pA?) Zhou/Ferrero, Biophys J, 2009
-        # FIXME: it is complex number in the beginning of iterations. need to fix (by Kei, 2021)
+        # TODO: it is complex number in the beginning of iterations. need to fix (by Kei, 2021)
         current_dict["I_K_ATP"][i] = potassiumPump(VV[i], 0, K_o, E_K, True)
 
         # I_K_2pore modeled as a simple Boltzmann
         # relationship via GHK, scaled to match isotonic K+ data from Bob Clark (pA; pA/pF in print)
-        current_dict["I_K_2pore"][i] = twoPorePotassium(VV[i], K_i_0, K_o, Q)/C_m
+        current_dict["I_K_2pore"][i] = twoPorePotassium(VV[i], K_i_0, K_o, Q, enable_I_K_2pore)/C_m
 
         # I_Na_b (pA; pA/pF in print) 
-        current_dict["I_Na_b"][i] = backgroundSodium(VV[i], None, E_Na)/C_m
+        current_dict["I_Na_b"][i] = backgroundSodium(VV[i], None, E_Na, enable_I_Na_b)/C_m
 
         # I_K_b (pA; pA/pF in print)
-        current_dict["I_K_b"][i] = backgroundPotassium(VV[i], None, None, g_K_b_bar, E_K)/C_m
+        current_dict["I_K_b"][i] = backgroundPotassium(VV[i], None, None, g_K_b_bar, E_K, enable_I_K_b)/C_m
         
         # I_Cl_b (pA; pA/pF in print)
-        current_dict["I_Cl_b"][i] = backgroundChloride(VV[i], None)/C_m
+        current_dict["I_Cl_b"][i] = backgroundChloride(VV[i], None, enable_I_Cl_b)/C_m
         
         # I_leak (pA); not printed, added to I_bg
-        current_dict["I_leak"][i] = backgroundLeak(VV[i])
+        current_dict["I_leak"][i] = backgroundLeak(VV[i], enable_I_leak)
 
         #  I_bg (pA; pA/pF in print)
         current_dict["I_bq"][i] = current_dict["I_Na_b"][i] + current_dict["I_K_b"][i] + current_dict["I_Cl_b"][i] + current_dict["I_leak"][i]
@@ -133,7 +140,7 @@ def main():
         # I_K_Ca_act (new version) (pA), with converted Ca_i units for model,
         # print as pA/pF
         # TODO : not yet verified (by Kei, 2021)
-        current_dict["I_BK"][i] = calciumActivatedPotassium(VV[i], Ca_i_ss)
+        current_dict["I_BK"][i] = calciumActivatedPotassium(VV[i], Ca_i_ss, enable_I_K_Ca_act)
 
         # I TRPV4 (pA; pA/pF in print)
         current_dict["I_TRPV4"][i] = TripCurrent(VV[i], True)/C_m
@@ -155,9 +162,8 @@ def main():
     print("slope_G = {}, R={}".format(slope_G, R))
     
     # this is added for debugging. Easier to debug with ipython than using print statement. feel free to remove.
-    # from IPython import embed; embed(); exit(1)
-        
-
+    from IPython import embed; embed(); exit(1)
+    
 if __name__ == "__main__":
     main()
     
