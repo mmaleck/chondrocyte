@@ -382,7 +382,7 @@ def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
         F = params.F; R = params.R; T = params.T
         # I_K_Ca_act (new version) (pA), with converted Ca_i units for model
         # Set constants
-        convert_units = 1e-6 # Convert from nM (e-9) to mM (e-3)
+        convert_units = 1e6 # Convert from nM (e-9) to mM (e-3)
         gBK = 2.50 # Gmax, nS
         E_K = -83  # Sun, et al
         #tspan = 1e-3*[0:1:300] %time in seconds
@@ -438,12 +438,12 @@ def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
             M[closed + jj + 1, closed + jj] = (jj+1)*K_C
             M[open + jj + 1, open + jj] = (jj+1)*K_O
         #  M(inactivated + i + 1, inactivated + i) = i*K_I
-
+        
     # Transpose since we have used above: M(from, to) = k_{from, to}
         M = np.transpose(M)
         for kk in range(n):
             M[kk,kk] = -np.sum(M[:,kk], axis=0)
-    
+
     #  Solve the system for Steady state at Ca_i_ss and V     
         eq = null_space(M) #find nullspace for BK (equilibrium)
         eq = eq/np.sum(eq) #Find unique equilibrium by scaling probabilities
