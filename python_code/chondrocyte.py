@@ -52,7 +52,7 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     enable_I_K_ur = params.enable_I_K_ur; enable_I_K_DR = params.enable_I_K_DR
     enable_I_K_2pore = params.enable_I_K_2pore; enable_I_K_Ca_act = params.enable_I_K_Ca_act
     enable_I_K_ATP = params.enable_I_K_ATP
-    I_K_ur = ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, i_ur, enable_I_K_ur)
+    I_K_ur = ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, enable_I_K_ur)
     I_K_DR = DelayedRectifierPotassium(V, enable_I_K_DR)[0]
     I_K_2pore = twoPorePotassium(V, K_i, K_o, P_K, enable_I_K_2pore)
     I_K_Ca_act = calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act)
@@ -450,7 +450,6 @@ def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
         #ode = @(t,y) ode_system(t,y,V)
         #[T,S] = ode15s(ode,tspan,eq)
         open = np.sum(eq[5:10]) #Calculate total steady-state open probability
-        print(open)
         I_BK = gBK*open*(V-E_K) #Calculate steady-state current in pA
         I_K_Ca_act = I_BK
         

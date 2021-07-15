@@ -160,7 +160,7 @@ def main():
     print("slope_G = {}, R={}".format(slope_G, R))
     
     # this is added for debugging. Easier to debug with ipython than using print statement. feel free to remove.
-    from IPython import embed; embed(); exit(1)
+    # from IPython import embed; embed(); exit(1)
     
 if __name__ == "__main__":
     main()
