@@ -137,14 +137,12 @@ def main():
         current_dict["I_bq"][i] = current_dict["I_Na_b"][i] + current_dict["I_K_b"][i] + current_dict["I_Cl_b"][i] + current_dict["I_leak"][i]
 
         # I_K_Ca_act (new version) (pA; pA/pF in print), with converted Ca_i units for model
-        # TODO : not yet verified (by Kei), have different values from MATLAB implementation
-        current_dict["I_BK"][i] = calciumActivatedPotassium(VV[i], Ca_i_ss, enable_I_K_Ca_act)
+        current_dict["I_BK"][i] = calciumActivatedPotassium(VV[i], Ca_i_ss, enable_I_K_Ca_act)/C_m
 
         # I TRPV4 (pA; pA/pF in print)
         current_dict["I_TRPV4"][i] = TripCurrent(VV[i], True)/C_m
 
         # I_RMP (pA; pA/pF in print)
-        # TODO: not yet veroified (by Kei)
         current_dict["I_RMP"][i] = current_dict["I_bq"][i] + current_dict["I_BK"][i] + current_dict["I_K_DR"][i] \
                                    + current_dict["I_NaCa"][i] + current_dict["I_NaK"][i] + current_dict["I_K_2pore"][i]
 
@@ -160,7 +158,7 @@ def main():
     print("slope_G = {}, R={}".format(slope_G, R))
     
     # this is added for debugging. Easier to debug with ipython than using print statement. feel free to remove.
-    # from IPython import embed; embed(); exit(1)
+    from IPython import embed; embed(); exit(1)
     
 if __name__ == "__main__":
     main()
