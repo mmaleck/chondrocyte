@@ -16,10 +16,11 @@ credits :
 license : 
 """
 
+# ??? : Why Gmax is given as an input ? not used in this function. (by Kei)
 def rhs(y, t, g_K_b_bar, P_K, Gmax):
     V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal = y
 
-    # FIXME: Fixing the volume while debugging -- do not understand this part by kei, 2021
+    # FIXME: Fixing the volume while debugging -- do not understand this part (by kei)
     vol_i = params.vol_i_0
 
     if (params.apply_Vm == True):
@@ -251,8 +252,8 @@ def sodiumPotassiumPump(V, K_o, Na_i_0, enable_I_NaK):
     if (enable_I_NaK == True):
         I_NaK_bar = params.I_NaK_bar; K_NaK_K = params.K_NaK_K; K_NaK_Na = params.K_NaK_Na
         I_NaK = I_NaK_bar*(K_o/(K_o + K_NaK_K)) \
-            *(Na_i_0**(1.5)/(Na_i_0**(1.5) + K_NaK_Na**(1.5))) \
-            *(V + 150.0)/(V + 200.0)
+                *(Na_i_0**(1.5)/(Na_i_0**(1.5) + K_NaK_Na**(1.5))) \
+                *(V + 150.0)/(V + 200.0)
     else:
         I_NaK = 0.0
 
@@ -271,7 +272,7 @@ def sodiumCalciumExchanger(V, Ca_i, Na_i_0, enable_I_NaCa):
         NCX_scale = params.NCX_scale
 
         I_NaCa = NCX_scale*K_NaCa*(Na_i_0**3*Ca_o*exp(gamma_Na*V*F/(R*T)) \
-                        - Na_o**3*Ca_i*exp((gamma_Na - 1.0)*V*F/(R*T))) \
+                - Na_o**3*Ca_i*exp((gamma_Na - 1.0)*V*F/(R*T))) \
                 /(1.0 + d_NaCa*(Na_o**3*Ca_i + Na_i_0**3*Ca_o)) 
     else:
         I_NaCa = 0.0
@@ -326,10 +327,10 @@ def ultraRapidlyRectifyingPotassiumHelper(V):
 
     return a_ur_inf, i_ur_inf, tau_a_ur, tau_i_ur
 
-def ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, i_ur, enable_I_K_ur):
+def ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, enable_I_K_ur):
     if (enable_I_K_ur == True):
         z_K = params.z_K; g_K_ur = params.g_K_ur
-        # why this function is called ? (by Kei, 2021)
+        # why this function is called ? (by Kei)
         a_ur_inf, i_ur_inf, tau_a_ur, tau_i_ur = ultraRapidlyRectifyingPotassiumHelper(V)
         E_K        = nernstPotential(z_K, K_i, K_o)
         I_K_ur     = g_K_ur*a_ur*(V - E_K)
@@ -374,6 +375,7 @@ def twoPorePotassium(V, K_i_0, K_o, Q, enable_I_K_2pore):
     return I_K_2pore
 
 # FIXME: Check the following carefully
+# TODO : understand what this function is doing (by Kei)
 def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
     """Calcium-activated potassium current - Sun, et al formulations (pA)"""
     if (enable_I_K_Ca_act == True):
@@ -448,6 +450,7 @@ def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
         #ode = @(t,y) ode_system(t,y,V)
         #[T,S] = ode15s(ode,tspan,eq)
         open = np.sum(eq[5:10]) #Calculate total steady-state open probability
+        print(open)
         I_BK = gBK*open*(V-E_K) #Calculate steady-state current in pA
         I_K_Ca_act = I_BK
         
@@ -464,7 +467,7 @@ def potassiumPump(V, K_i, K_o, E_K, enable_I_K_ATP):
         p_0     = 0.91
         H_K_ATP = -0.001
         K_m_ATP = 0.56
-        # surf    = 1 # not used, what is this variable ?
+        # surf    = 1 # not used, what is this variable ? (by Kei)
 
         V_0 = params.V_0
         ADP_i = 10
@@ -484,7 +487,7 @@ def potassiumPump(V, K_i, K_o, E_K, enable_I_K_ATP):
     return I_K_ATP
 
 def externalStimulation(t, enable_I_stim):
-    """# External stimulation"""
+    """External stimulation"""
     if (enable_I_stim == True):
         t_cycle = params.t_cycle; t_stim = params.t_stim; I_stim_bar = params.I_stim_bar
         I_stim = I_stim_bar*square(t*2*pi/t_cycle, t_stim/t_cycle)
