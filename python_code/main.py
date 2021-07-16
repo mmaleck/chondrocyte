@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate.odepack import odeint
 import os
+import pickle
+
 
 """
 File name : main.py 
@@ -18,11 +20,16 @@ license :
 """
 
 path = os.getcwd()
-path = os.path.join(path, "result")
+newfolder = os.path.join(path, "result")
 
-if not os.path.isdir(path):
-    print("Create a result folder")
-    os.makedirs(path)
+if not os.path.exists(newfolder):
+    newfolder = os.path.join(newfolder, '1')
+    os.makedirs(newfolder)
+else:
+    previous = [f for f in os.listdir(newfolder) if not f.startswith('.')]
+    previous = max(map(eval, previous)) if previous else 0
+    newfolder = os.path.join(newfolder, str(previous + 1))
+    os.makedirs(newfolder)
 
 def main():
     # Define time span
@@ -48,7 +55,10 @@ def main():
 
     # Split up into individual states
     # TODO : Cl_i has slightly higher values than MATLAB output  (by Kei)
-    V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal  = np.hsplit(solution, 10)
+    V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal  = np.hsplit(solution, 10)    
+
+    with open(os.path.join(newfolder, 'ode_solution.pkl'), 'wb') as file:
+        pickle.dump(solution, file)
 
     ramp_Vm = params.ramp_Vm
     if (ramp_Vm == True):
@@ -147,18 +157,21 @@ def main():
                                    + current_dict["I_NaCa"][i] + current_dict["I_NaK"][i] + current_dict["I_K_2pore"][i]
 
         # I_total (pA)
-        # TODO: not yet verifiyed (by Kei)
+        # TODO: not yet verifiyed due to "I_K_ATP"(by Kei)
         current_dict["I_total"][i] = current_dict["I_NaK"][i]*C_m + current_dict["I_NaCa"][i]*C_m + current_dict["I_Ca_ATP"][i] + \
                                      current_dict["I_K_DR"][i]*C_m +  current_dict["I_K_2pore"][i]*C_m + current_dict["I_K_ATP"][i] + \
                                      current_dict["I_BK"][i] + current_dict["I_Na_b"][i]*C_m + current_dict["I_K_b"][i]*C_m + \
                                      current_dict["I_Cl_b"][i]*C_m + current_dict["I_leak"][i] + current_dict["I_TRPV4"][i]*C_m
     
-    slope_G = (current_dict["I_bq"][-1]-current_dict["I_bq"][0])/(VV[-1]-VV[0]) # pA/mV = nS
+    with open(os.path.join(newfolder, 'current.pkl'), 'wb') as file:
+        pickle.dump(current_dict, file)
+
+    slope_G = (current_dict["I_bq"][-1]-current_dict["I_bq"][0])*C_m/(VV[-1]-VV[0]) # pA/mV = nS
     R = 1/slope_G # = GOhms
     print("slope_G = {}, R={}".format(slope_G, R))
     
     # this is added for debugging. Easier to debug with ipython than using print statement. feel free to remove.
-    from IPython import embed; embed(); exit(1)
+    # from IPython import embed; embed(); exit(1)
     
 if __name__ == "__main__":
     main()
