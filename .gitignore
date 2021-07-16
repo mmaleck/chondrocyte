@@ -4,6 +4,9 @@
 # text file
 *.txt
 
+#data
+*.pkl
+
 # OS file
 .DS_Store
 
