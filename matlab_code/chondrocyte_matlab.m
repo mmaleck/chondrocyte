@@ -425,7 +425,7 @@ function I_K_Ca_act = calciumActivatedPotassium(V, Ca_i)
       global F R T;
       %I_K_Ca_act (new version) (pA), with converted Ca_i units for model
         % Set constants
-        convert_units = 1e-6; % Convert from nM (e-9) to mM (e-3)
+        convert_units = 1e6; % Convert from nM (e-9) to mM (e-3)
         gBK = 2.50;%Gmax, nS
         E_K = -83; %Sun, et al
         %tspan = 1e-3*[0:1:300]; %time in seconds
