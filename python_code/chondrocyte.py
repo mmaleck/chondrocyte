@@ -196,9 +196,10 @@ def backgroundSodium(V, Na_i, E_Na, enable_I_Na_b):
     """
     if (enable_I_Na_b == True):
         z_Na = params.z_Na; g_Na_b_bar = params.g_Na_b_bar; Na_o = params.Na_o
+        I_Na_b_scale = params.I_Na_b_scale
         if E_Na == None:
             E_Na = nernstPotential(z_Na, Na_i, Na_o)
-        I_Na_b = g_Na_b_bar*(V - E_Na)
+        I_Na_b = I_Na_b_scale*g_Na_b_bar*(V - E_Na)
     else:
         I_Na_b = 0.0
 
@@ -286,7 +287,7 @@ def sodiumHydrogenExchanger(Na_i, H_i, enable_I_NaH):
     Noma. Biophysical Journal 2009; 97; 2674-2683 (pp. 2675) (pA)
     """
     if (enable_I_NaH == True):
-        n_H = params.n_H; K_H_i_mod = params.K_H_i_mod
+        n_H = params.n_H; K_H_i_mod = params.K_H_i_mod; I_NaH_scale = params.I_NaH_scale
         k1_p = params.k1_p; k1_m = params.k1_m; k2_p = params.k2_p; k2_m = params.k2_m
         Na_o = params.Na_o; H_o = params.H_o; N_NaH_channel = params.N_NaH_channel
         K_Na_o = params.K_Na_o; K_H_o = params.K_H_o;K_Na_i = params.K_Na_i; K_H_i = params.K_H_i
@@ -297,7 +298,7 @@ def sodiumHydrogenExchanger(Na_i, H_i, enable_I_NaH):
         t3 = k1_m*Na_i/K_Na_i / (1 + Na_i/K_Na_i + H_i/K_H_i)
         t4 = k2_m*H_o/K_H_o   / (1 + Na_o/K_Na_o + H_o/K_H_o)
         I_NaH_exch = (t1*t2 - t3*t4) / (t1 + t2 + t3 + t4)
-        I_NaH = N_NaH_channel*I_NaH_mod*I_NaH_exch
+        I_NaH = I_NaH_scale*N_NaH_channel*I_NaH_mod*I_NaH_exch
     else:
         I_NaH = 0.0
     
@@ -307,15 +308,15 @@ def sodiumHydrogenExchanger(Na_i, H_i, enable_I_NaH):
 def calciumPump(Ca_i, enable_I_Ca_ATP):
     """Calcium pump from Nygren et al. (pA)"""
     if (enable_I_Ca_ATP == True):
-        I_Ca_ATP_bar = params.I_Ca_ATP_bar; k_Ca_ATP = params.k_Ca_ATP
-        I_Ca_ATP = I_Ca_ATP_bar*(Ca_i/(Ca_i + k_Ca_ATP))
+        I_Ca_ATP_bar = params.I_Ca_ATP_bar; k_Ca_ATP = params.k_Ca_ATP; I_Ca_ATP_scale = params.I_Ca_ATP_scale
+        I_Ca_ATP = I_Ca_ATP_scale*I_Ca_ATP_bar*(Ca_i/(Ca_i + k_Ca_ATP))
     else:
         I_Ca_ATP = 0.0
 
     return I_Ca_ATP
 
 def ultraRapidlyRectifyingPotassiumHelper(V):
-    """Ultra-rapidly rectifying potassium channel from "Action potential rate
+    """Ultra-rapidly rectifying potassium channel from "Action potential scale
     dependence in the human atrial myocyte," M. M. Maleckar, J. L.
     Greenstein, W. R. Giles and N. A. Trayanova. Am. J. Physiol. Heart.
     Circ. Physiol. 2009; 297; 1398-1410 (Appendix, pp. 1408) (pA)
@@ -367,15 +368,15 @@ def twoPorePotassium(V, K_i_0, K_o, Q, enable_I_K_2pore):
     relationship via GHK (pA)"""
     if (enable_I_K_2pore == True):
         F = params.F; R = params.R; T = params.T; z_K = params.z_K; I_K_2pore_0 = params.I_K_2pore_0
+        I_K_2pore_scale = params.I_K_2pore_scale
         # OLD, via Harish: I_K_2pore = P_K*z_K**2*V*F**2/(R*T)*(K_i_0 - K_o*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
-        I_K_2pore = 5*Q*sqrt(K_o/K_i_0)*V*(1 - (K_o/K_i_0)*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
+        I_K_2pore = I_K_2pore_scale*5*Q*sqrt(K_o/K_i_0)*V*(1 - (K_o/K_i_0)*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
     else:
         I_K_2pore = 0.0
 
     return I_K_2pore
 
 # FIXME: Check the following carefully
-# TODO : understand what this function is doing (by Kei)
 def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
     """Calcium-activated potassium current - Sun, et al formulations (pA)"""
     if (enable_I_K_Ca_act == True):
@@ -427,14 +428,14 @@ def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
     
         #  Horizontal transitions
         for jj in range(4):
-            # on rates:
+            # on scales:
             k_on = (4-jj)*Ca_i*convert_units
 
             M[closed + jj, closed + jj + 1] = k_on
             M[open + jj, open + jj + 1] = k_on
            #M(inactivated + i, inactivated + i + 1) = k_on
 
-        # off rates:
+        # off scales:
             M[closed + jj + 1, closed + jj] = (jj+1)*K_C
             M[open + jj + 1, open + jj] = (jj+1)*K_O
         #  M(inactivated + i + 1, inactivated + i) = i*K_I
@@ -470,8 +471,8 @@ def potassiumPump(V, K_i, K_o, E_K, enable_I_K_ATP):
 
         V_0 = params.V_0
         ADP_i = 10
+        # FIXME:This ATP_i is negative in the beginning of the for loop and causes f_ATP to be complex number and so on (by Kei)
         ATP_i = V - V_0 + ADP_i # FIXME: arbitrary
-
         H = 1.3 + 0.74*exp(-H_K_ATP*ADP_i)
         K_m = 35.8 + 17.9*ADP_i**(K_m_ATP)
         f_ATP = 1.0/(1.0 + (np.abs(ATP_i)/K_m)**H*np.sign(ATP_i))
