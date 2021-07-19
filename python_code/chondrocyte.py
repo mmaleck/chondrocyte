@@ -1,4 +1,4 @@
-import params
+from params import params_dict
 import numpy as np
 from math import pi, log, ceil, exp, sqrt
 from scipy.signal import square
@@ -21,9 +21,9 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal = y
 
     # FIXME: Fixing the volume while debugging -- do not understand this part (by kei)
-    vol_i = params.vol_i_0
+    vol_i = params_dict["vol_i_0"]
 
-    if (params.apply_Vm == True):
+    if (params_dict["apply_Vm"] == True):
         V = appliedVoltage(t)
     else:
         V = V
@@ -38,7 +38,7 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     I_leak = backgroundLeak(V, enable_I_leak=False)
 
     #Calculate pump and exchanger currents
-    Na_i_0 = params.Na_i_0
+    Na_i_0 = params_dict["Na_i_0"]
     I_NaK = sodiumPotassiumPump(V, K_o, Na_i_0, enable_I_NaK=True)
     I_NaCa = sodiumCalciumExchanger(V, Ca_i, Na_i_0, enable_I_NaCa=True)
     I_NaH = sodiumHydrogenExchanger(Na_i, H_i, enable_I_NaH=True)
@@ -65,16 +65,16 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
         + I_ASIC + I_TRP1 + I_TRP2 + I_TRPV4
 
     # Determine incremental changes in evolving quantities
-    F = params.F
-    C_m = params.C_m
+    F = params_dict["F"]
+    C_m = params_dict["C_m"]
 
     # Evolve calmodulin - Ca buffer
     cal_dot = 200000.0*Ca_i*(1.0 - cal) - 476.0*cal
     # cal_dot = 200000.0*Ca_i*(1.0 - cal)
 
     #Evolve the concentrations
-    clamp_Na_i = params.clamp_Na_i
-    clamp_K_i = params.clamp_K_i
+    clamp_Na_i = params_dict["clamp_Na_i"]
+    clamp_K_i = params_dict["clamp_K_i"]
     if (clamp_Na_i == True):
         Na_i_dot = 0
     else:
@@ -99,15 +99,15 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     a_ur_dot = (a_ur_inf - a_ur)/tau_a_ur
     i_ur_dot = (i_ur_inf - i_ur)/tau_i_ur
 
-    Na_o = params.Na_o
-    Ca_o = params.Ca_o
-    H_o = params.H_o
-    Cl_o = params.Cl_o
+    Na_o = params_dict["Na_o"]
+    Ca_o = params_dict["Ca_o"]
+    H_o = params_dict["H_o"]
+    Cl_o = params_dict["Cl_o"]
 
-    K_i_0 = params.K_i_0
-    Ca_i_0 = params.Ca_i_0
-    H_i_0 = params.H_i_0
-    Cl_i_0 = params.Cl_i_0
+    K_i_0 = params_dict["K_i_0"]
+    Ca_i_0 = params_dict["Ca_i_0"]
+    H_i_0 = params_dict["H_i_0"]
+    Cl_i_0 = params_dict["Cl_i_0"]
 
     #Think this is volume from one of the UK papers...check later 3/16/2016
     osm_i_0 = Na_i_0 + K_i_0 + Ca_i_0 + H_i_0 + Cl_i_0
@@ -120,13 +120,13 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     V_W = 18.0
     vol_i_dot = P_f*SA*V_W*(osm_i - osm_o - dosm)
 
-    apply_Vm = params.apply_Vm
+    apply_Vm = params_dict["apply_Vm"]
     if (apply_Vm == True):
         V_dot = 0.0
     else:
         V_dot = 1/C_m*(-I_i + I_stim)
 
-    clamp_conc = params.clamp_conc
+    clamp_conc = params_dict["clamp_conc"]
     if (clamp_conc == True):
         Na_i_dot = 0.0
         K_i_dot = 0.0
@@ -139,21 +139,21 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
 
 def nernstPotential(z, X_i, X_o):
     """Potential of an ion X across the membrane (mV)."""
-    R = params.R; T = params.T; F = params.F
+    R = params_dict["R"]; T = params_dict["T"]; F = params_dict["F"]
     E_X = (R*T)/(z*F)*log(X_o/X_i)
     return E_X
 
 def appliedVoltage(t):
     """Applied voltage (mV)"""
-    clamp_Vm = params.clamp_Vm; ramp_Vm = params.ramp_Vm; step_Vm = params.step_Vm
+    clamp_Vm = params_dict["clamp_Vm"]; ramp_Vm = params_dict["ramp_Vm"]; step_Vm = params_dict["step_Vm"]
     if (clamp_Vm == True):
-        V_0 = params.V_0
+        V_0 = params_dict["V_0"]
         V = V_0
     elif (ramp_Vm == True):
-        V_0 = params.V_0; V_final = params.V_final; t_final = params.t_final
+        V_0 = params_dict["V_0"]; V_final = params_dict["V_final"]; t_final = params_dict["t_final"]
         V = V_0 + (V_final - V_0)*t/t_final
     elif (step_Vm == True):
-        t_cycle = params.t_cycle; t_stim = params.t_stim
+        t_cycle = params_dict["t_cycle"]; t_stim = params_dict["t_stim"]
         V = (ceil((t - 30)/t_cycle)*square((t - 30)*2*pi/t_cycle, t_stim/t_cycle) + ceil((t - 30)/t_cycle))/2*10 - 90
 
     if (V == 0):
@@ -162,7 +162,7 @@ def appliedVoltage(t):
     return V
 
 def appliedPotassiumConcentration(t):
-    step_K_o = params.step_K_o; K_o_0 = params.K_o_0
+    step_K_o = params_dict["step_K_o"]; K_o_0 = params_dict["K_o_0"]
     if (step_K_o == False):
         K_o = K_o_0
     else:
@@ -184,8 +184,8 @@ def backgroundSodium(V, Na_i, E_Na, enable_I_Na_b):
     membranes," B. Hille. (pA)
     """
     if (enable_I_Na_b == True):
-        z_Na = params.z_Na; g_Na_b_bar = params.g_Na_b_bar; Na_o = params.Na_o
-        I_Na_b_scale = params.I_Na_b_scale
+        z_Na = params_dict["z_Na"]; g_Na_b_bar = params_dict["g_Na_b_bar"]; Na_o = params_dict["Na_o"]
+        I_Na_b_scale = params_dict["I_Na_b_scale"]
         if E_Na == None:
             E_Na = nernstPotential(z_Na, Na_i, Na_o)
         I_Na_b = I_Na_b_scale*g_Na_b_bar*(V - E_Na)
@@ -199,7 +199,7 @@ def backgroundPotassium(V, K_i, K_o, g_K_b_bar, E_K, enable_I_K_b):
     membranes," B. Hille. (pA)
     """
     if (enable_I_K_b == True):
-        z_K = params.z_K
+        z_K = params_dict["z_K"]
         if E_K == None :
             E_K = nernstPotential(z_K, K_i, K_o)
         I_K_b = g_K_b_bar*(V - E_K)
@@ -213,7 +213,7 @@ def backgroundChloride(V, Cl_i, enable_I_Cl_b):
     membranes," B. Hille. (pA)
     """
     if (enable_I_Cl_b == True):
-        z_Cl = params.z_Cl; g_Cl_b_bar = params.g_Cl_b_bar; Cl_o = params.Cl_o
+        z_Cl = params_dict["z_Cl"]; g_Cl_b_bar = params_dict["g_Cl_b_bar"]; Cl_o = params_dict["Cl_o"]
         #E_Cl = nernstPotential(z_Cl, Cl_o, Cl_i)
         #E_Cl = -40.0
         E_Cl = -65.0
@@ -225,7 +225,7 @@ def backgroundChloride(V, Cl_i, enable_I_Cl_b):
 
 def backgroundLeak(V, enable_I_leak):
     if (enable_I_leak == True):
-        g_leak = params.g_leak
+        g_leak = params_dict["g_leak"]
         I_leak = g_leak*V
     else:
         I_leak = 0.0
@@ -240,7 +240,7 @@ def sodiumPotassiumPump(V, K_o, Na_i_0, enable_I_NaK):
     Giles. Circ. Res. 1998; 82; 63-81 (Table 12, pp. 77) (pA)
     """
     if (enable_I_NaK == True):
-        I_NaK_bar = params.I_NaK_bar; K_NaK_K = params.K_NaK_K; K_NaK_Na = params.K_NaK_Na
+        I_NaK_bar = params_dict["I_NaK_bar"]; K_NaK_K = params_dict["K_NaK_K"]; K_NaK_Na = params_dict["K_NaK_Na"]
         I_NaK = I_NaK_bar*(K_o/(K_o + K_NaK_K)) \
                 *(Na_i_0**(1.5)/(Na_i_0**(1.5) + K_NaK_Na**(1.5))) \
                 *(V + 150.0)/(V + 200.0)
@@ -256,10 +256,10 @@ def sodiumCalciumExchanger(V, Ca_i, Na_i_0, enable_I_NaCa):
     Giles. Circ. Res. 1998; 82; 63-81 (Table 13, pp. 77) (pA)
     """
     if (enable_I_NaCa == True):
-        F = params.F; R = params.R; T = params.T
-        Na_o = params.Na_o; Ca_o = params.Ca_o
-        K_NaCa = params.K_NaCa; gamma_Na = params.gamma_Na; d_NaCa = params.d_NaCa
-        NCX_scale = params.NCX_scale
+        F = params_dict["F"]; R = params_dict["R"]; T = params_dict["T"]
+        Na_o = params_dict["Na_o"]; Ca_o = params_dict["Ca_o"]
+        K_NaCa = params_dict["K_NaCa"]; gamma_Na = params_dict["gamma_Na"]; d_NaCa = params_dict["d_NaCa"]
+        NCX_scale = params_dict["NCX_scale"]
 
         I_NaCa = NCX_scale*K_NaCa*(Na_i_0**3*Ca_o*exp(gamma_Na*V*F/(R*T)) \
                 - Na_o**3*Ca_i*exp((gamma_Na - 1.0)*V*F/(R*T))) \
@@ -276,10 +276,10 @@ def sodiumHydrogenExchanger(Na_i, H_i, enable_I_NaH):
     Noma. Biophysical Journal 2009; 97; 2674-2683 (pp. 2675) (pA)
     """
     if (enable_I_NaH == True):
-        n_H = params.n_H; K_H_i_mod = params.K_H_i_mod; I_NaH_scale = params.I_NaH_scale
-        k1_p = params.k1_p; k1_m = params.k1_m; k2_p = params.k2_p; k2_m = params.k2_m
-        Na_o = params.Na_o; H_o = params.H_o; N_NaH_channel = params.N_NaH_channel
-        K_Na_o = params.K_Na_o; K_H_o = params.K_H_o;K_Na_i = params.K_Na_i; K_H_i = params.K_H_i
+        n_H = params_dict["n_H"]; K_H_i_mod = params_dict["K_H_i_mod"]; I_NaH_scale = params_dict["I_NaH_scale"]
+        k1_p = params_dict["k1_p"]; k1_m = params_dict["k1_m"]; k2_p = params_dict["k2_p"]; k2_m = params_dict["k2_m"]
+        Na_o = params_dict["Na_o"]; H_o = params_dict["H_o"]; N_NaH_channel = params_dict["N_NaH_channel"]
+        K_Na_o = params_dict["K_Na_o"]; K_H_o = params_dict["K_H_o"];K_Na_i = params_dict["K_Na_i"]; K_H_i = params_dict["K_H_i"]
 
         I_NaH_mod  = 1/(1 + (K_H_i_mod**(n_H)/H_i**(n_H)))
         t1 = k1_p*Na_o/K_Na_o / (1 + Na_o/K_Na_o + H_o/K_H_o)
@@ -297,7 +297,7 @@ def sodiumHydrogenExchanger(Na_i, H_i, enable_I_NaH):
 def calciumPump(Ca_i, enable_I_Ca_ATP):
     """Calcium pump from Nygren et al. (pA)"""
     if (enable_I_Ca_ATP == True):
-        I_Ca_ATP_bar = params.I_Ca_ATP_bar; k_Ca_ATP = params.k_Ca_ATP; I_Ca_ATP_scale = params.I_Ca_ATP_scale
+        I_Ca_ATP_bar = params_dict["I_Ca_ATP_bar"]; k_Ca_ATP = params_dict["k_Ca_ATP"]; I_Ca_ATP_scale = params_dict["I_Ca_ATP_scale"]
         I_Ca_ATP = I_Ca_ATP_scale*I_Ca_ATP_bar*(Ca_i/(Ca_i + k_Ca_ATP))
     else:
         I_Ca_ATP = 0.0
@@ -319,7 +319,7 @@ def ultraRapidlyRectifyingPotassiumHelper(V):
 
 def ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, enable_I_K_ur):
     if (enable_I_K_ur == True):
-        z_K = params.z_K; g_K_ur = params.g_K_ur
+        z_K = params_dict["z_K"]; g_K_ur = params_dict["g_K_ur"]
         # why this function is called ? (by Kei)
         a_ur_inf, i_ur_inf, tau_a_ur, tau_i_ur = ultraRapidlyRectifyingPotassiumHelper(V)
         E_K        = nernstPotential(z_K, K_i, K_o)
@@ -331,7 +331,7 @@ def ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, enable_I_K_ur):
 def DelayedRectifierPotassium(V, enable_I_K_DR):
     """ Delayed rectifer potassium channel from Clark, et al (pA)"""
     if (enable_I_K_DR == True):
-        g_K_DR = params.g_K_DR; i_K_DR = params.i_K_DR; act_DR_shift = params.act_DR_shift 
+        g_K_DR = params_dict["g_K_DR"]; i_K_DR = params_dict["i_K_DR"]; act_DR_shift = params_dict["act_DR_shift"]
         alpha_K_DR = 1.0/(1.0 + exp(-(V + 26.7 + act_DR_shift)/4.1)) # Same as what I had. 3/3/16
         # E_K        = nernstPotential(z_K, K_i, K_o)
         E_K = -83
@@ -346,7 +346,7 @@ def ultrarapidlyRectifyingPotassium_ref(V, K_i, K_o):
     G_K = 28.9  # pS/pF
     V_h = -26.7 # mV
     S_h = 4.1   # mV
-    C_m = params.C_m; z_K = params.z_K
+    C_m = params_dict["C_m"]; z_K = params_dict["z_K"]
     E_K        = nernstPotential(z_K, K_i, K_o)
     I_K_ur_ref = G_K*(V - E_K)/(1 + exp(-(V - V_h)/S_h)) * C_m/1000.0
 
@@ -356,8 +356,8 @@ def twoPorePotassium(V, K_i_0, K_o, Q, enable_I_K_2pore):
     """ Two-pore potassium current - novel?; modeled as a simple Boltzmann
     relationship via GHK (pA)"""
     if (enable_I_K_2pore == True):
-        F = params.F; R = params.R; T = params.T; z_K = params.z_K; I_K_2pore_0 = params.I_K_2pore_0
-        I_K_2pore_scale = params.I_K_2pore_scale
+        F = params_dict["F"]; R = params_dict["R"]; T = params_dict["T"]; z_K = params_dict["z_K"]; I_K_2pore_0 = params_dict["I_K_2pore_0"]
+        I_K_2pore_scale = params_dict["I_K_2pore_scale"]
         # OLD, via Harish: I_K_2pore = P_K*z_K**2*V*F**2/(R*T)*(K_i_0 - K_o*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
         I_K_2pore = I_K_2pore_scale*5*Q*sqrt(K_o/K_i_0)*V*(1 - (K_o/K_i_0)*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
     else:
@@ -369,7 +369,7 @@ def twoPorePotassium(V, K_i_0, K_o, Q, enable_I_K_2pore):
 def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
     """Calcium-activated potassium current - Sun, et al formulations (pA)"""
     if (enable_I_K_Ca_act == True):
-        F = params.F; R = params.R; T = params.T
+        F = params_dict["F"]; R = params_dict["R"]; T = params_dict["T"]
         # I_K_Ca_act (new version) (pA), with converted Ca_i units for model
         # Set constants
         convert_units = 1e6 # Convert from nM (e-9) to mM (e-3)
@@ -457,14 +457,14 @@ def potassiumPump(V, K_i, K_o, E_K, enable_I_K_ATP):
         H_K_ATP = -0.001
         K_m_ATP = 0.56
         # surf    = 1 # not used, what is this variable ? (by Kei)
-        V_0 = params.V_0
+        V_0 = params_dict["V_0"]
         ADP_i = 10
         # FIXME:This ATP_i is negative in the beginning of the for loop and causes f_ATP to be complex number and so on (by Kei)
         ATP_i = V - V_0 + ADP_i # FIXME: arbitrary
         H = 1.3 + 0.74*exp(-H_K_ATP*ADP_i)
         K_m = 35.8 + 17.9*ADP_i**(K_m_ATP)
         f_ATP = 1.0/(1.0 + (np.abs(ATP_i)/K_m)**H*np.sign(ATP_i))
-        z_K = params.z_K
+        z_K = params_dict["z_K"]
         if E_K == None:
             E_K = nernstPotential(z_K, K_i, K_o)
         
@@ -477,7 +477,7 @@ def potassiumPump(V, K_i, K_o, E_K, enable_I_K_ATP):
 def externalStimulation(t, enable_I_stim):
     """External stimulation"""
     if (enable_I_stim == True):
-        t_cycle = params.t_cycle; t_stim = params.t_stim; I_stim_bar = params.I_stim_bar
+        t_cycle = params_dict["t_cycle"]; t_stim = params_dict["t_stim"]; I_stim_bar = params_dict["I_stim_bar"]
         I_stim = I_stim_bar*square(t*2*pi/t_cycle, t_stim/t_cycle)
     else :
         I_stim = 0.0
@@ -496,7 +496,7 @@ def voltageActivatedHydrogen(enable_I_ASIC):
 def TripCurrent(V, enable_I_TRPV4):
     """Implement the TRPV4 channel"""
     if (enable_I_TRPV4 == True):
-        g_TRPV4 = params.g_TRPV4;  a_TRPV4 = params.a_TRPV4; b_TRPV4 = params.b_TRPV4
+        g_TRPV4 = params_dict["g_TRPV4"];  a_TRPV4 = params_dict["a_TRPV4"]; b_TRPV4 = params_dict["b_TRPV4"]
         if(V < 0):
             I_TRPV4 = g_TRPV4*(b_TRPV4*V + (1 - b_TRPV4)*a_TRPV4*(1 - (1 - (V/a_TRPV4))*(1 - (V/a_TRPV4))*(1-(V/a_TRPV4))))
         else:
@@ -509,7 +509,7 @@ def TripCurrent(V, enable_I_TRPV4):
 # FIXME: Implement the stretch-activated TRP channel    
 def stretchActivatedTrip(V, enable_I_TRP1):
     if (enable_I_TRP1 == True):
-        g_TRP1 = params.g_TRP1; a_TRP1 = params.a_TRP1; b_TRP1 = params.b_TRP1
+        g_TRP1 = params_dict["g_TRP1"]; a_TRP1 = params_dict["a_TRP1"]; b_TRP1 = params_dict["b_TRP1"]
         if(V < 0):
             I_TRP1 = g_TRP1*(b_TRP1*V + (1 - b_TRP1)*a_TRP1*(1 - (1 - (V/a_TRP1))*(1 - (V/a_TRP1))*(1-(V/a_TRP1))))
         else:
