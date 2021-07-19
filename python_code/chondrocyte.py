@@ -32,41 +32,31 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     K_o = appliedPotassiumConcentration(t)
 
     #Calculate background currents
-    enable_I_Na_b = params.enable_I_Na_b; enable_I_K_b = params.enable_I_K_b
-    enable_I_Cl_b = params.enable_I_Cl_b; enable_I_leak = params.enable_I_leak
-    I_Na_b = backgroundSodium(V, Na_i, None, enable_I_Na_b)
-    I_K_b = backgroundPotassium(V, K_i, K_o, g_K_b_bar, None, enable_I_K_b)
-    I_Cl_b = backgroundChloride(V, Cl_i, enable_I_Cl_b)
-    I_leak = backgroundLeak(V, enable_I_leak)
+    I_Na_b = backgroundSodium(V, Na_i, None, enable_I_Na_b=True)
+    I_K_b = backgroundPotassium(V, K_i, K_o, g_K_b_bar, None, enable_I_K_b=True)
+    I_Cl_b = backgroundChloride(V, Cl_i, enable_I_Cl_b=True)
+    I_leak = backgroundLeak(V, enable_I_leak=False)
 
     #Calculate pump and exchanger currents
-    Na_i_0 = params.Na_i_0; enable_I_NaK = params.enable_I_NaK
-    enable_I_NaCa = params.enable_I_NaCa; enable_I_NaH = params.enable_I_NaH
-    enable_I_Ca_ATP = params.enable_I_Ca_ATP
-    I_NaK = sodiumPotassiumPump(V, K_o, Na_i_0, enable_I_NaK)
-    I_NaCa = sodiumCalciumExchanger(V, Ca_i, Na_i_0, enable_I_NaCa)
-    I_NaH = sodiumHydrogenExchanger(Na_i, H_i, enable_I_NaH)
-    I_Ca_ATP = calciumPump(Ca_i, enable_I_Ca_ATP)
+    Na_i_0 = params.Na_i_0
+    I_NaK = sodiumPotassiumPump(V, K_o, Na_i_0, enable_I_NaK=True)
+    I_NaCa = sodiumCalciumExchanger(V, Ca_i, Na_i_0, enable_I_NaCa=True)
+    I_NaH = sodiumHydrogenExchanger(Na_i, H_i, enable_I_NaH=True)
+    I_Ca_ATP = calciumPump(Ca_i, enable_I_Ca_ATP=True)
 
     # Calculate potassium currents
-    enable_I_K_ur = params.enable_I_K_ur; enable_I_K_DR = params.enable_I_K_DR
-    enable_I_K_2pore = params.enable_I_K_2pore; enable_I_K_Ca_act = params.enable_I_K_Ca_act
-    enable_I_K_ATP = params.enable_I_K_ATP
-    I_K_ur = ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, enable_I_K_ur)
-    I_K_DR = DelayedRectifierPotassium(V, enable_I_K_DR)[0]
-    I_K_2pore = twoPorePotassium(V, K_i, K_o, P_K, enable_I_K_2pore)
-    I_K_Ca_act = calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act)
-    I_K_ATP = potassiumPump(V, K_i, K_o, None, enable_I_K_ATP)
+    I_K_ur = ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, enable_I_K_ur=False)
+    I_K_DR = DelayedRectifierPotassium(V, enable_I_K_DR=True)
+    I_K_2pore = twoPorePotassium(V, K_i, K_o, P_K, enable_I_K_2pore=True)
+    I_K_Ca_act = calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act=True)
+    I_K_ATP = potassiumPump(V, K_i, K_o, None, enable_I_K_ATP=False)
   
     # Calculate other currents
-    enable_I_ASIC = params.enable_I_ASIC; enable_I_TRP1 = params.enable_I_TRP1
-    enable_I_TRP2 = params.enable_I_TRP2; enable_I_TRPV4 = params.enable_I_TRPV4
-    enable_I_stim = params.enable_I_stim
-    I_ASIC = voltageActivatedHydrogen(enable_I_ASIC)
-    I_TRP1 = stretchActivatedTrip(V, enable_I_TRP1)
-    I_TRP2 = osteoArthriticTrip(enable_I_TRP2)
-    I_TRPV4 = TripCurrent(V, enable_I_TRPV4)
-    I_stim = externalStimulation(t, enable_I_stim)
+    I_ASIC = voltageActivatedHydrogen(enable_I_ASIC=False)
+    I_TRP1 = stretchActivatedTrip(V, enable_I_TRP1=False)
+    I_TRP2 = osteoArthriticTrip(enable_I_TRP2=False)
+    I_TRPV4 = TripCurrent(V, enable_I_TRPV4=False)
+    I_stim = externalStimulation(t, enable_I_stim=False)
 
     #Total ionic contribution (pA)
     I_i = I_Na_b + I_K_b + I_Cl_b + I_leak \
@@ -118,7 +108,6 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     Ca_i_0 = params.Ca_i_0
     H_i_0 = params.H_i_0
     Cl_i_0 = params.Cl_i_0
-    # Na_i_clamp = params.Na_i_clamp
 
     #Think this is volume from one of the UK papers...check later 3/16/2016
     osm_i_0 = Na_i_0 + K_i_0 + Ca_i_0 + H_i_0 + Cl_i_0
@@ -316,7 +305,7 @@ def calciumPump(Ca_i, enable_I_Ca_ATP):
     return I_Ca_ATP
 
 def ultraRapidlyRectifyingPotassiumHelper(V):
-    """Ultra-rapidly rectifying potassium channel from "Action potential scale
+    """Ultra-rapidly rectifying potassium channel from "Action potential rate
     dependence in the human atrial myocyte," M. M. Maleckar, J. L.
     Greenstein, W. R. Giles and N. A. Trayanova. Am. J. Physiol. Heart.
     Circ. Physiol. 2009; 297; 1398-1410 (Appendix, pp. 1408) (pA)
@@ -350,7 +339,7 @@ def DelayedRectifierPotassium(V, enable_I_K_DR):
     else:
         I_K_DR = 0.0
     
-    return I_K_DR, alpha_K_DR
+    return I_K_DR
 
 def ultrarapidlyRectifyingPotassium_ref(V, K_i, K_o):
     """ From Bob Clark et al., J. Physiol. 2011, Figure 4 - IKDR"""
@@ -428,14 +417,14 @@ def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
     
         #  Horizontal transitions
         for jj in range(4):
-            # on scales:
+            # on rates:
             k_on = (4-jj)*Ca_i*convert_units
 
             M[closed + jj, closed + jj + 1] = k_on
             M[open + jj, open + jj + 1] = k_on
            #M(inactivated + i, inactivated + i + 1) = k_on
 
-        # off scales:
+        # off rates:
             M[closed + jj + 1, closed + jj] = (jj+1)*K_C
             M[open + jj + 1, open + jj] = (jj+1)*K_O
         #  M(inactivated + i + 1, inactivated + i) = i*K_I
@@ -468,7 +457,6 @@ def potassiumPump(V, K_i, K_o, E_K, enable_I_K_ATP):
         H_K_ATP = -0.001
         K_m_ATP = 0.56
         # surf    = 1 # not used, what is this variable ? (by Kei)
-
         V_0 = params.V_0
         ADP_i = 10
         # FIXME:This ATP_i is negative in the beginning of the for loop and causes f_ATP to be complex number and so on (by Kei)

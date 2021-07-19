@@ -19,6 +19,7 @@ from math import sqrt
 '''
 
 """Toggle estimation of parameters"""
+# TODO : not used anywhere ?
 enable_parest = False
 
 """Toggle clamping of the internal concentrations (for debugging)"""
@@ -42,32 +43,32 @@ clamp_K_i = True
 """=====Toggle individual currents====="""
 
 """Background"""
-enable_I_Na_b = True
-enable_I_K_b = True
-enable_I_Cl_b = True
-enable_I_leak = False
+# enable_I_Na_b = True
+# enable_I_K_b = True
+# enable_I_Cl_b = True
+# enable_I_leak = False
 
 """Pumps and exchangers"""
-enable_I_NaK = True
-enable_I_NaCa = True
-enable_I_NaH = True
-enable_I_Ca_ATP = True
+# enable_I_NaK = True
+# enable_I_NaCa = True
+# enable_I_NaH = True
+# enable_I_Ca_ATP = True
 
 """Potassium currents"""
-enable_I_K_ur = False     #Leave turned off; redundant as this was replaced by I_K_DR, below
-enable_I_K_2pore = True   #Basically no effect on RMP in current form
-enable_I_K_Ca_act = True  #Little effect on RMP in current form
-enable_I_K_ATP = False    #Large effect on RMP when turned on
-enable_I_K_DR = True      #Large effect on RMP
+# enable_I_K_ur = False     #Leave turned off; redundant as this was replaced by I_K_DR, below
+# enable_I_K_2pore = True   #Basically no effect on RMP in current form
+# enable_I_K_Ca_act = True  #Little effect on RMP in current form
+# enable_I_K_ATP = False    #Large effect on RMP when turned on
+# enable_I_K_DR = True      #Large effect on RMP
 
 """Other currents"""
-enable_I_TRP1 = False
-enable_I_TRPV4 = False
+# enable_I_TRP1 = False
+# enable_I_TRPV4 = False
 
-"""Definitely not used"""
-enable_I_ASIC = False
-enable_I_TRP2 = False
-enable_I_stim = False
+# """Definitely not used"""
+# enable_I_ASIC = False
+# enable_I_TRP2 = False
+# enable_I_stim = False
 
 """Time-stepping information"""
 t_final = 50000.0       # Final time (s)
@@ -79,21 +80,21 @@ dt = 1e0
 
 """ Na_o  : 130 for cardiac; 140 for synovial fluid, 240-250 for chondrocyte matrix    
 Clamped external sodium concentration (mM/l)"""
-Na_o = 140
-# Na_o = 295.0
+# Na_o = 140
+Na_o = 295.0
 
 """Clamped external potassium concentration (mM/l)
 K_o_0, K_o : 5.4 for cardiac; 5 for synovial fluid, 7-12 for chondrocyte matrix      
 """
-# K_o_0  = 9.5
-K_o_0 = 5.0
+K_o_0  = 9.5
+# K_o_0 = 5.0
 K_o = K_o_0
 step_K_o = False
 
 """ Ca_o : 1.8-2.0 for cardiac; 1.5 for synovial fluid, 6-15 for chondrocyte matrix      
 Clamped external calcium concentration (mM/l)"""
-Ca_o   = 1.5
-# Ca_o = 13
+# Ca_o   = 1.5
+Ca_o = 13
 
 """Clamped external hydrogen concentration (mM/l)"""
 H_o    = 10**(-7.4) 
@@ -110,22 +111,22 @@ V_0 = -66.725
 """Initial internal sodium concentration (mM/l)
 Na_i_0 : 8.5 for cardiac; 40??? for chondrocyte - using either 12.0 or 20.0
 Na_i_0 = 1.22582880260390e+00 """
-# Na_i_0  =  25.0 
-Na_i_0 = 12.0
-Na_i_clamp = 12.0
+Na_i_0  =  25.0 
+# Na_i_0 = 12.0
+Na_i_clamp = 25.0
 
 """Initial internal potassium concentration (mM/l)
 K_i_0 : 120-140 for cardiac; 120-140 for chondrocyte
 K_i_0 = 1.16805063818441e+02"""
-# K_i_0 = 180.0
-K_i_0 = 140 
+K_i_0 = 180.0
+# K_i_0 = 140 
 
 """Initial internal calcium concentration (mM/l)
 Ca_i_0 : 0.000067 mM/l for cardiac, 0.00001 - 0.00005 for chondrocyte
 Ca_i_0 = 0.0015
 Ca_i_0 = 1.20992489429946e-07"""
-# Ca_i_0 = 0.00001
-Ca_i_0 = 0.00005
+Ca_i_0 = 0.00001
+# Ca_i_0 = 0.00005
 
 """Initial internal hydrogen concentration (mM/l)"""
 H_i_0   = 3.47426156721507e-10
@@ -189,13 +190,16 @@ g_leak = 0.0
 # I_NaK_bar = 70.8253*C_m/C_myo #pA, from Nygren et al, 1998, default
 
 """EXPERIMENT for INaK @ physiological temperature"""
-# I_NaK_scale = 1.625*4.65                    #scaled for q10 = 3 per Wayne's request
+# I_NaK_scale = 4.65*1.625                  #scaled for q10 = 3 per Wayne's request, for temp 37C
+# I_NaK_scale = 1.00 # for temp 23
 I_NaK_scale = 1.625
 I_NaK_bar = I_NaK_scale*70.8253*C_m/C_myo     #(pA), from Nygren et al, 1998
 # K_NaK_K = 1.0                               #(mmol/L) Nygren, et al, 1998
-K_NaK_K = 2.2
+# K_NaK_K = 2.2
+K_NaK_K = 2.1
 # K_NaK_Na = 11.0                             #(mmol/L) Nygren, et al, 1998
-K_NaK_Na = 12.0
+# K_NaK_Na = 12.0
+K_NaK_Na = 17.5
 
 """Constants related to the sodium-calcium exchanger"""
 K_NaCa = 0.0374842 #pA/(mmol/L)4 (Nygren1998) - 0.04 - default
@@ -226,7 +230,7 @@ I_NaH_scale = 1.00 # for temp 23C
 """Constants related to the calcium pump"""
 I_Ca_ATP_bar = 6.0 #ICaP = 4.0 (pA), Nygren1998
 I_Ca_ATP_scale = 1.0 # for temp 23C
-I_Ca_ATP_scale = 1.29 # for temp 37C
+# I_Ca_ATP_scale = 1.29 # for temp 37C
 k_Ca_ATP = 0.0002 #kCaP = 0.0002 (mmol/L)
 
 """Constants related to the ultra-rapidly rectifying potassium channel
@@ -248,6 +252,7 @@ I_K_2pore_0 = 0.0
 #I_K_2pore_0 = 1.5
 I_K_2pore_scale = 1.35 # for temp 23C
 # I_K_2pore_scale = 1.29*1.35 # for temp 37C
+
 """Constants related to the calcium-activated potassium channel"""
 Zj = 0.70
 Vhj = 250

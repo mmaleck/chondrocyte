@@ -79,7 +79,7 @@ def main():
     VV = np.linspace(-150, 100, V_step_size)
 
     # create dictionary for saving currents
-    current_dict = {"alpha_K_DR" : np.zeros(V_step_size), 
+    current_dict = {
                     "I_K_DR" : np.zeros(V_step_size), 
                     "I_NaK" : np.zeros(V_step_size),
                     "I_NaCa" : np.zeros(V_step_size), 
@@ -102,55 +102,49 @@ def main():
     Na_i_clamp = params.Na_i_clamp; Q = params.Q 
     E_K = -94.02 # From Zhou, et al
     E_Na = 55.0; E_K = -83 
-    enable_I_K_DR = params.enable_I_K_DR; enable_I_NaK = params.enable_I_NaK
-    enable_I_NaK = params.enable_I_NaK; enable_I_Ca_ATP = params.enable_I_Ca_ATP
-    enable_I_K_2pore = params.enable_I_K_2pore; enable_I_Na_b = params.enable_I_Na_b
-    enable_I_K_b = params.enable_I_K_b; enable_I_Cl_b = params.enable_I_Cl_b
-    enable_I_leak = params.enable_I_leak; enable_I_K_Ca_act = params.enable_I_K_Ca_act
 
     for i in range(V_step_size):
 
         # I_K_DR (printed in pA/pF)
-        current_dict["I_K_DR"][i], current_dict["alpha_K_DR"][i] = DelayedRectifierPotassium(VV[i], enable_I_K_DR)
-        current_dict["I_K_DR"][i] = (current_dict["I_K_DR"][i])/C_m
-        
+        current_dict["I_K_DR"][i] = DelayedRectifierPotassium(V=VV[i], enable_I_K_DR=True)/C_m
+
         # I_Na_K (pA; printed IV pA/pF)
-        current_dict["I_NaK"][i]= sodiumPotassiumPump(VV[i], K_o, Na_i_clamp,enable_I_NaK)/C_m
+        current_dict["I_NaK"][i]= sodiumPotassiumPump(V=VV[i], K_o=K_o, Na_i_0=Na_i_clamp, enable_I_NaK=True)/C_m
 
         # I_NaCa (pA; printed IV pA/pF)
-        current_dict["I_NaCa"][i] = sodiumCalciumExchanger(VV[i], Ca_i_0, Na_i_clamp, enable_I_NaK)/C_m
+        current_dict["I_NaCa"][i] = sodiumCalciumExchanger(V=VV[i], Ca_i=Ca_i_0, Na_i_0=Na_i_clamp, enable_I_NaCa=True)/C_m
 
         # I_Ca_ATP (pA)
-        current_dict["I_Ca_ATP"][i] = calciumPump(Ca_i_ss, enable_I_Ca_ATP)
+        current_dict["I_Ca_ATP"][i] = calciumPump(Ca_i=Ca_i_ss, enable_I_Ca_ATP=True)
 
         # I_K_ATP (pA?) Zhou/Ferrero, Biophys J, 2009
         # TODO: it is complex number in the beginning of iterations. need to fix (by Kei)
-        current_dict["I_K_ATP"][i] = potassiumPump(VV[i], 0, K_o, E_K, True)
+        current_dict["I_K_ATP"][i] = potassiumPump(V=VV[i], K_i=0, K_o=K_o,E_K=-94.02, enable_I_K_ATP=True)
 
         # I_K_2pore (pA; pA/pF in print) 
         # modeled as a simple Boltzmann relationship via GHK, scaled to match isotonic K+ data from Bob Clark
-        current_dict["I_K_2pore"][i] = twoPorePotassium(VV[i], K_i_0, K_o, Q, enable_I_K_2pore)/C_m
+        current_dict["I_K_2pore"][i] = twoPorePotassium(V=VV[i], K_i_0=K_i_0, K_o=K_o, Q=Q, enable_I_K_2pore=True)/C_m
 
         # I_Na_b (pA; pA/pF in print)
-        current_dict["I_Na_b"][i] = backgroundSodium(VV[i], None, E_Na, enable_I_Na_b)/C_m
+        current_dict["I_Na_b"][i] = backgroundSodium(V=VV[i], Na_i=None, E_Na=E_Na, enable_I_Na_b=True)/C_m
 
         # I_K_b (pA; pA/pF in print)
-        current_dict["I_K_b"][i] = backgroundPotassium(VV[i], None, None, g_K_b_bar, E_K, enable_I_K_b)/C_m
+        current_dict["I_K_b"][i] = backgroundPotassium(V=VV[i], K_i=None, K_o=None, g_K_b_bar=g_K_b_bar, E_K=-83, enable_I_K_b=True)/C_m
         
         # I_Cl_b (pA; pA/pF in print)
-        current_dict["I_Cl_b"][i] = backgroundChloride(VV[i], None, enable_I_Cl_b)/C_m
+        current_dict["I_Cl_b"][i] = backgroundChloride(V=VV[i], Cl_i=None, enable_I_Cl_b=True)/C_m
         
         # I_leak (pA); not printed, added to I_bg
-        current_dict["I_leak"][i] = backgroundLeak(VV[i], enable_I_leak)
+        current_dict["I_leak"][i] = backgroundLeak(V=VV[i], enable_I_leak=False)
 
         # I_bg (pA; pA/pF in print)
         current_dict["I_bq"][i] = current_dict["I_Na_b"][i] + current_dict["I_K_b"][i] + current_dict["I_Cl_b"][i] + current_dict["I_leak"][i]
 
         # I_K_Ca_act (new version) (pA; pA/pF in print), with converted Ca_i units for model
-        current_dict["I_BK"][i] = calciumActivatedPotassium(VV[i], Ca_i_ss, enable_I_K_Ca_act)/C_m
+        current_dict["I_BK"][i] = calciumActivatedPotassium(V=VV[i], Ca_i=Ca_i_ss, enable_I_K_Ca_act=True)/C_m
 
         # I TRPV4 (pA; pA/pF in print)
-        current_dict["I_TRPV4"][i] = TripCurrent(VV[i], True)/C_m
+        current_dict["I_TRPV4"][i] = TripCurrent(V=VV[i], enable_I_TRPV4=True)/C_m
 
         # I_RMP (pA; pA/pF in print)
         current_dict["I_RMP"][i] = current_dict["I_bq"][i] + current_dict["I_BK"][i] + current_dict["I_K_DR"][i] \
@@ -161,7 +155,7 @@ def main():
         current_dict["I_total"][i] = current_dict["I_NaK"][i]*C_m + current_dict["I_NaCa"][i]*C_m + current_dict["I_Ca_ATP"][i] + \
                                      current_dict["I_K_DR"][i]*C_m +  current_dict["I_K_2pore"][i]*C_m + current_dict["I_K_ATP"][i] + \
                                      current_dict["I_BK"][i] + current_dict["I_Na_b"][i]*C_m + current_dict["I_K_b"][i]*C_m + \
-                                     current_dict["I_Cl_b"][i]*C_m + current_dict["I_leak"][i] + current_dict["I_TRPV4"][i]*C_m
+                                     current_dict["I_Cl_b"][i]*C_m + current_dict["I_leak"][i] + current_dict["I_TRPV4"][i]*C_m 
     
     with open(os.path.join(newfolder, 'current.pkl'), 'wb') as file:
         pickle.dump(current_dict, file)
