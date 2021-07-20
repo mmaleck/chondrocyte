@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from scipy.integrate.odepack import odeint
 import os
 import pickle
-from pprint import pprint
 
 """
 File name : main.py 
@@ -42,15 +41,8 @@ a_ur_0 = params_dict["a_ur_0"]; i_ur_0 = params_dict["i_ur_0"]; vol_i_0 = params
 
 y0 = (V_0, Na_i_0, K_i_0, Ca_i_0, H_i_0, Cl_i_0, a_ur_0, i_ur_0, vol_i_0, cal_0)
 
-# Define parameter vector
-g_K_b_bar = params_dict["g_K_b_bar"]
-P_K =params_dict["P_K"]
-Gmax = params_dict["Gmax"]
-
-parameters = (g_K_b_bar, P_K, Gmax)
-
 # Call the ODE solver
-solution = odeint(rhs, y0, t, args=parameters)
+solution = odeint(rhs, y0, t, args=(params_dict,))
 
 # Split up into individual states
 # TODO : Cl_i has slightly higher values than MATLAB output  (by Kei)
@@ -125,7 +117,7 @@ for i in range(V_step_size):
     current_dict["I_Na_b"][i] = backgroundSodium(V=VV[i], Na_i=None, E_Na=params_dict["E_Na"], enable_I_Na_b=True)/C_m
 
     # I_K_b (pA; pA/pF in print)
-    current_dict["I_K_b"][i] = backgroundPotassium(V=VV[i], K_i=None, K_o=None, g_K_b_bar=g_K_b_bar, E_K=-83, enable_I_K_b=True)/C_m
+    current_dict["I_K_b"][i] = backgroundPotassium(V=VV[i], K_i=None, K_o=None, g_K_b_bar=params_dict["g_K_b_bar"], E_K=-83, enable_I_K_b=True)/C_m
     
     # I_Cl_b (pA; pA/pF in print)
     current_dict["I_Cl_b"][i] = backgroundChloride(V=VV[i], Cl_i=None, enable_I_Cl_b=True)/C_m
@@ -159,9 +151,6 @@ with open(os.path.join(newfolder, 'current.pkl'), 'wb') as file:
 slope_G = (current_dict["I_bq"][-1]-current_dict["I_bq"][0])*C_m/(VV[-1]-VV[0]) # pA/mV = nS
 R = 1/slope_G # = GOhms
 print("slope_G = {}, R={}".format(slope_G, R))
-
-print("Simulation was done with the following parameters")
-pprint(params_dict)
 
 with open(os.path.join(newfolder, 'params.txt'), 'w') as par:
     for key, value in params_dict.items(): 

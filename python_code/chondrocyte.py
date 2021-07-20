@@ -16,8 +16,7 @@ credits :
 license : 
 """
 
-# ??? : Why Gmax is given as an input ? not used in this function. (by Kei)
-def rhs(y, t, g_K_b_bar, P_K, Gmax):
+def rhs(y, t, params_dict):
     V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal = y
 
     # FIXME: Fixing the volume while debugging -- do not understand this part (by kei)
@@ -32,6 +31,7 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     K_o = appliedPotassiumConcentration(t)
 
     #Calculate background currents
+    g_K_b_bar = params_dict["g_K_b_bar"]
     I_Na_b = backgroundSodium(V, Na_i, None, enable_I_Na_b=True)
     I_K_b = backgroundPotassium(V, K_i, K_o, g_K_b_bar, None, enable_I_K_b=True)
     I_Cl_b = backgroundChloride(V, Cl_i, enable_I_Cl_b=True)
@@ -45,6 +45,7 @@ def rhs(y, t, g_K_b_bar, P_K, Gmax):
     I_Ca_ATP = calciumPump(Ca_i, enable_I_Ca_ATP=True)
 
     # Calculate potassium currents
+    P_K = params_dict["P_K"]
     I_K_ur = ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, enable_I_K_ur=False)
     I_K_DR = DelayedRectifierPotassium(V, enable_I_K_DR=True)
     I_K_2pore = twoPorePotassium(V, K_i, K_o, P_K, enable_I_K_2pore=True)
