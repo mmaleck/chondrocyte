@@ -89,11 +89,10 @@ def rhs(y, t, params_dict):
         #K_i_dot  = - (I_K_b  - 2*I_NaK + I_K_ur + I_K_DR + I_K_2pore + I_K_Ca_act + I_K_ATP)/(vol_i*F)
     
     Ca_i_dot =   -(I_Ca_ATP - 2*I_NaCa + I_TRPV4)/(2*vol_i*F) - 0.045*cal_dot
-    # Ca_i_dot =   -(I_Ca_ATP - 2*I_NaCa + I_TRPV4)/(2*vol_i*F) - 0.045*cal_dot
     H_i_dot = 0
     #H_i_dot =  - (I_NaH)/(vol_i*F)
-    Cl_i_dot =  (I_Cl_b)/(vol_i*F)
     #Cl_i_dot = 0
+    Cl_i_dot =  (I_Cl_b)/(vol_i*F)
 
     a_ur_inf, i_ur_inf, tau_a_ur, tau_i_ur = ultraRapidlyRectifyingPotassiumHelper(V)
 
@@ -360,7 +359,10 @@ def twoPorePotassium(V, K_i_0, K_o, Q, enable_I_K_2pore):
         F = params_dict["F"]; R = params_dict["R"]; T = params_dict["T"]; z_K = params_dict["z_K"]; I_K_2pore_0 = params_dict["I_K_2pore_0"]
         I_K_2pore_scale = params_dict["I_K_2pore_scale"]
         # OLD, via Harish: I_K_2pore = P_K*z_K**2*V*F**2/(R*T)*(K_i_0 - K_o*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
-        I_K_2pore = I_K_2pore_scale*5*Q*sqrt(K_o/K_i_0)*V*(1 - (K_o/K_i_0)*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
+        if V == 0: # based on Flax, Matt R. and Holmes, W.Harvey (2008) Goldman-Hodgkin-Katz Cochlear Hair Cell Models - a Foundation for Nonlinear Cochlear Mechanics, Conference proceedings: Interspeech 2008
+            I_K_2pore = I_K_2pore_scale*5*Q*sqrt(K_o/K_i_0)*R*T/(z_K*F)*(1-(K_o/K_i_0)) + I_K_2pore_0
+        else:
+            I_K_2pore = I_K_2pore_scale*5*Q*sqrt(K_o/K_i_0)*V*(1 - (K_o/K_i_0)*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
     else:
         I_K_2pore = 0.0
 
