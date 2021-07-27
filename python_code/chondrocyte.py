@@ -1,6 +1,6 @@
 from params import params_dict
 import numpy as np
-from math import pi, log, ceil, exp, sqrt
+from math import gamma, pi, log, ceil, exp, sqrt
 from scipy.signal import square
 from scipy.linalg import null_space
 
@@ -50,7 +50,7 @@ def rhs(y, t, params_dict):
     I_K_DR = DelayedRectifierPotassium(V, enable_I_K_DR=True)
     I_K_2pore = twoPorePotassium(V, K_i, K_o, P_K, enable_I_K_2pore=True)
     I_K_Ca_act = calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act=True)
-    I_K_ATP = potassiumPump(V, K_i, K_o, None, enable_I_K_ATP=False)
+    I_K_ATP = potassiumPump(V, K_i, K_o, None, Na_i, enable_I_K_ATP=False)
   
     # Calculate other currents
     I_ASIC = voltageActivatedHydrogen(enable_I_ASIC=False)
@@ -358,7 +358,6 @@ def twoPorePotassium(V, K_i_0, K_o, Q, enable_I_K_2pore):
     if (enable_I_K_2pore == True):
         F = params_dict["F"]; R = params_dict["R"]; T = params_dict["T"]; z_K = params_dict["z_K"]; I_K_2pore_0 = params_dict["I_K_2pore_0"]
         I_K_2pore_scale = params_dict["I_K_2pore_scale"]
-        # OLD, via Harish: I_K_2pore = P_K*z_K**2*V*F**2/(R*T)*(K_i_0 - K_o*exp(-z_K*V*F/(R*T)))/(1- exp(-z_K*V*F/(R*T))) + I_K_2pore_0
         if V == 0: # based on Flax, Matt R. and Holmes, W.Harvey (2008) Goldman-Hodgkin-Katz Cochlear Hair Cell Models - a Foundation for Nonlinear Cochlear Mechanics, Conference proceedings: Interspeech 2008
             I_K_2pore = I_K_2pore_scale*5*Q*sqrt(K_o/K_i_0)*R*T/(z_K*F)*(1-(K_o/K_i_0)) + I_K_2pore_0
         else:
@@ -451,27 +450,42 @@ def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
     
     return I_K_Ca_act
     
-def potassiumPump(V, K_i, K_o, E_K, enable_I_K_ATP):
+def potassiumPump(V, K_i, K_o, E_K, Na_i, enable_I_K_ATP):
+    """ATP-dependent K+ current, based on Simulation of Action Potentials From Metabolically Impaired Cardiac Myocytes Role of ATP-Sensitive K+ Current by Ferreo et al, 1996"""
     if (enable_I_K_ATP == True):
         sigma   = 0.6
-        # g_0 = 0.05 #Testing, 3/16/16
-        g_0     = 30.95/40 # FIXME: Somewhat arbitrary. Scaled this down to match Zhou/Ferrero.
+        # some idea to expaned this model 
+        # 
+        F = params_dict["F"]; R = params_dict["R"]; T = params_dict["T"]
+        gamma_zero = 33.375*(K_o/5.4)**(0.24)/500 # scaled, but not sure if it's okay
+        f_M = 1; Q_10 = 1.3
+        K_h_Na_0 = 25.9 #mM/L
+        delta_Na = 0.35
+        K_h_Na = K_h_Na_0*exp(-(delta_Na*F*V)/(R*T))
+        f_N = 1/(1+(Na_i/K_h_Na)**2)
+        T = 23
+        f_T = Q_10**((T-36)/10)
+        g_0 = gamma_zero*f_M*f_N*f_T
+        # g_0     = 30.95/40 # FIXME: Somewhat arbitrary. Scaled this down to match Zhou/Ferrero.
         p_0     = 0.91
         H_K_ATP = -0.001
         K_m_ATP = 0.56
-        # surf    = 1 # not used, what is this variable ? (by Kei)
+        C_A = 8.0 # total concentration
+        # surf    = 1 
         V_0 = params_dict["V_0"]
-        ADP_i = 10
+        ATP_i = 7.7
         # FIXME:This ATP_i is negative in the beginning of the for loop and causes f_ATP to be complex number and so on (by Kei)
-        ATP_i = V - V_0 + ADP_i # FIXME: arbitrary
+        # ATP_i = abs(V - V_0) + ADP_i # FIXME: arbitrary
+        ADP_i = C_A - ATP_i
         H = 1.3 + 0.74*exp(-H_K_ATP*ADP_i)
         K_m = 35.8 + 17.9*ADP_i**(K_m_ATP)
-        f_ATP = 1.0/(1.0 + (np.abs(ATP_i)/K_m)**H*np.sign(ATP_i))
+        f_ATP = 1.0/(1.0 + (ATP_i/K_m)**H)
         z_K = params_dict["z_K"]
         if E_K == None:
             E_K = nernstPotential(z_K, K_i, K_o)
         
         I_K_ATP = sigma*g_0*p_0*f_ATP*(V - E_K)
+        # from IPython import embed; embed(); exit(1)
     else:
         I_K_ATP = 0.0
     

@@ -59,11 +59,8 @@ if (ramp_Vm == True):
 longth = V.shape[0]
 
 # get steady-state ion concentrations
-# TODO : only Ca_i_ss is used ? (by Kei)
 Ca_i_ss = Ca_i[longth-1]
-K_i_ss = K_i[longth-1]
 Na_i_ss = Na_i[longth-1]
-V_RMP_ss = V[longth-1]
 
 # prepare voltage as an array
 V_step_size = 2501
@@ -107,7 +104,7 @@ for i in range(V_step_size):
 
     # I_K_ATP (pA?) Zhou/Ferrero, Biophys J, 2009
     # TODO: it is complex number in the beginning of iterations. need to fix (by Kei)
-    current_dict["I_K_ATP"][i] = potassiumPump(V=VV[i], K_i=0, K_o=params_dict["K_o"],E_K=-94.02, enable_I_K_ATP=True)
+    current_dict["I_K_ATP"][i] = potassiumPump(V=VV[i], K_i=None, K_o=params_dict["K_o"],E_K=-94.02, Na_i=Na_i_ss ,enable_I_K_ATP=True)
 
     # I_K_2pore (pA; pA/pF in print) 
     # modeled as a simple Boltzmann relationship via GHK, scaled to match isotonic K+ data from Bob Clark
@@ -129,6 +126,7 @@ for i in range(V_step_size):
     current_dict["I_bq"][i] = current_dict["I_Na_b"][i] + current_dict["I_K_b"][i] + current_dict["I_Cl_b"][i] + current_dict["I_leak"][i]
 
     # I_K_Ca_act (new version) (pA; pA/pF in print), with converted Ca_i units for model
+    # TODO: why Ca_i_ss here ? (by Kei)
     current_dict["I_BK"][i] = calciumActivatedPotassium(V=VV[i], Ca_i=Ca_i_ss, enable_I_K_Ca_act=True)/C_m
 
     # I TRPV4 (pA; pA/pF in print)
@@ -155,4 +153,7 @@ print("slope_G = {}, R={}".format(slope_G, R))
 with open(os.path.join(newfolder, 'params.txt'), 'w') as par:
     for key, value in params_dict.items(): 
         par.write('%s: %s\n' % (key, value))
+
+
+from IPython import embed; embed();
 
