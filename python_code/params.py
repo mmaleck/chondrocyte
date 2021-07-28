@@ -1,22 +1,15 @@
 from math import sqrt
 
-'''
-  This file is part of the chondrocyte modelling project at Simula
-  Research Laboratory, Norway. Refer to the files README and COPYING for
-  more information about the project as well as terms of distribution.
+"""
+This file is part of the chondrocyte modelling project at Simula
+Research Laboratory, Norway. Refer to the files README and COPYING for
+more information about the project as well as terms of distribution.
  
-  Copyright (C) 2010--2016 M. M. Maleckar & Harish Narayanan
-  Licensed under the GNU GPL Version 3
-  The solution fields and parameters have the following units:
- 
-  Voltage: mV
-  Current: pa
-  Time: s
-  Concentration: mM/l
-  Conductance: pS except where noted -- nS? 3/16/16
-  Capacitance: pF
-  Current RMP ~-33.25 mV, Na_i ~5mM and K_i ~125 mM
-'''
+Author : Kei Yamamoto, Sofie Fischer, M.M.Malacker
+email : keiya@math.uio.no
+Data created : July, 2021
+Python version : 3.8.2
+"""
 
 params_dict = dict(
   clamp_conc = False,             # Toggle clamping of the internal concentrations (for debugging)
