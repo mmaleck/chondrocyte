@@ -44,12 +44,12 @@ def rhs(y, t, params_dict):
     I_Ca_ATP = calciumPump(Ca_i, enable_I_Ca_ATP=True)
 
     # Calculate potassium currents
-    P_K = params_dict["P_K"]
+    P_K = params_dict["P_K"]; temp = params_dict["temp"]
     I_K_ur = ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, enable_I_K_ur=False)
     I_K_DR = DelayedRectifierPotassium(V, enable_I_K_DR=True)
     I_K_2pore = twoPorePotassium(V, K_i, K_o, P_K, enable_I_K_2pore=True)
     I_K_Ca_act = calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act=True)
-    I_K_ATP = potassiumPump(V, K_i, K_o, None, Na_i, enable_I_K_ATP=False)
+    I_K_ATP = potassiumPump(V, K_i, K_o, None, Na_i, temp, enable_I_K_ATP=False)
   
     # Calculate other currents
     I_ASIC = voltageActivatedHydrogen(enable_I_ASIC=False)
@@ -109,15 +109,15 @@ def rhs(y, t, params_dict):
     Cl_i_0 = params_dict["Cl_i_0"]
 
     #Think this is volume from one of the UK papers...check later 3/16/2016
-    osm_i_0 = Na_i_0 + K_i_0 + Ca_i_0 + H_i_0 + Cl_i_0
-    osm_i = Na_i + K_i + Ca_i + H_i + Cl_i
-    osm_o = Na_o + K_o + Ca_o + H_o + Cl_o
-    dosm = osm_i_0 - osm_o
+    # osm_i = Na_i + K_i + Ca_i + H_i + Cl_i
+    osm_i = K_i 
+    # osm_o = Na_o + K_o + Ca_o + H_o + Cl_o
+    osm_o = K_o 
 
-    P_f = 10.2e-4
-    SA = 6.0**(2.0/3.0)*pi**(1.0/3.0)*vol_i**(2.0/3.0)
-    V_W = 18.0
-    vol_i_dot = P_f*SA*V_W*(osm_i - osm_o - dosm)
+    P_f = 10.2e-4 # water permeability of the cell (cm sec^-1)
+    SA = 6.0**(2.0/3.0)*pi**(1.0/3.0)*vol_i**(2.0/3.0) # Surface Area
+    V_W = 18.0 # Molar volume of water 
+    vol_i_dot = P_f*SA*V_W*(osm_i - osm_o)
 
     apply_Vm = params_dict["apply_Vm"]
     if (apply_Vm == True):
@@ -215,7 +215,7 @@ def backgroundChloride(V, Cl_i, enable_I_Cl_b):
         z_Cl = params_dict["z_Cl"]; g_Cl_b_bar = params_dict["g_Cl_b_bar"]; Cl_o = params_dict["Cl_o"]
         #E_Cl = nernstPotential(z_Cl, Cl_o, Cl_i)
         #E_Cl = -40.0
-        E_Cl = -65.0
+        E_Cl = params_dict["E_Cl"]
         I_Cl_b = g_Cl_b_bar*(V - E_Cl)
     else:
         I_Cl_b = 0.0
@@ -342,9 +342,9 @@ def DelayedRectifierPotassium(V, enable_I_K_DR):
 
 def ultrarapidlyRectifyingPotassium_ref(V, K_i, K_o):
     """ From Bob Clark et al., J. Physiol. 2011, Figure 4 - IKDR"""
-    G_K = 28.9  # pS/pF
-    V_h = -26.7 # mV
-    S_h = 4.1   # mV
+    G_K = params_dict["G_K"]
+    V_h = params_dict["V_h"]
+    S_h = params_dict["S_h"]
     C_m = params_dict["C_m"]; z_K = params_dict["z_K"]
     E_K        = nernstPotential(z_K, K_i, K_o)
     I_K_ur_ref = G_K*(V - E_K)/(1 + exp(-(V - V_h)/S_h)) * C_m/1000.0
@@ -449,30 +449,29 @@ def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
     
     return I_K_Ca_act
     
-def potassiumPump(V, K_i, K_o, E_K, Na_i, enable_I_K_ATP):
+def potassiumPump(V, K_i, K_o, E_K, Na_i, temp, enable_I_K_ATP):
     """ATP-dependent K+ current, based on Simulation of Action Potentials From Metabolically Impaired Cardiac Myocytes Role of ATP-Sensitive K+ Current by Ferreo et al, 1996"""
     if (enable_I_K_ATP == True):
         sigma   = 0.6
         # some idea to expaned this model 
         # 
         F = params_dict["F"]; R = params_dict["R"]; T = params_dict["T"]
+        f_M = params_dict["f_M"]; Q_10 = params_dict["Q_10"]
+        K_h_Na_0 = params_dict["K_h_Na_0"]
+        delta_Na = params_dict["delta_Na"]
         gamma_zero = 33.375*(K_o/5.4)**(0.24)/500 # scaled, but not sure if it's okay
-        f_M = 1; Q_10 = 1.3
-        K_h_Na_0 = 25.9 #mM/L
-        delta_Na = 0.35
         K_h_Na = K_h_Na_0*exp(-(delta_Na*F*V)/(R*T))
         f_N = 1/(1+(Na_i/K_h_Na)**2)
-        T = 23
-        f_T = Q_10**((T-36)/10)
+        f_T = Q_10**((temp-36)/10)
         g_0 = gamma_zero*f_M*f_N*f_T
         # g_0     = 30.95/40 # FIXME: Somewhat arbitrary. Scaled this down to match Zhou/Ferrero.
-        p_0     = 0.91
-        H_K_ATP = -0.001
-        K_m_ATP = 0.56
-        C_A = 8.0 # total concentration
+        p_0 = params_dict["p_0"] 
+        H_K_ATP = params_dict["H_K_ATP"]
+        K_m_ATP = params_dict["K_m_ATP"]
+        C_A = params_dict["C_A"]
         # surf    = 1 
         V_0 = params_dict["V_0"]
-        ATP_i = 7.7
+        ATP_i = params_dict["ATP_i"]
         # FIXME:This ATP_i is negative in the beginning of the for loop and causes f_ATP to be complex number and so on (by Kei)
         # ATP_i = abs(V - V_0) + ADP_i # FIXME: arbitrary
         ADP_i = C_A - ATP_i

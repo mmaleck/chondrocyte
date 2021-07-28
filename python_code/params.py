@@ -25,8 +25,8 @@ params_dict = dict(
   dt = 1e0,
   # External concentrations
   Na_o = 295.0,                   # Clamped external sodium concentration (mM/l)
-  K_o_0  = 9.5,
-  K_o = 9.5,                      # must be same as K_o_0
+  K_o_0  = 5.4,
+  K_o = 5.4,                     
   step_K_o = False,
   Ca_o = 13,                      # Clamped external calcium concentration (mM/l), 1.8-2.0 for cardiac; 1.5 for synovial fluid, 6-15 for chondrocyte matrix
   H_o    = 10**(-7.4),            # Clamped external hydrogen concentration (mM/l)
@@ -123,7 +123,29 @@ params_dict = dict(
   g_TRPV4 = 0.00046875*0.05, # (nS)
   a_TRPV4 = 80,
   b_TRPV4 = -1000,
-  E_Na = 55.0
+  E_Na = 55.0,
+  # Contants related to I_K_ATP
+  temp = 23,
+  # Constants related to I_Cl_b 
+  E_Cl = -65.0,
+  # Constants related to I_K_ur_ref
+  G_K = 28.9,  # pS/pF
+  V_h = -26.7, # mV
+  S_h = 4.1,   # mV
+  # Constants related to I_K_ATP
+  f_M = 1.0,
+  Q_10 = 1.3,
+  K_h_Na_0 = 25.9,  #mM/L
+  delta_Na = 0.35,
+  p_0 = 0.91,  
+  H_K_ATP = -0.001,
+  K_m_ATP = 0.56,
+  C_A = 8.0, # total concentration
+  ATP_i = 7.7,
+  # parameter for voltage clamp
+  V_step = 2501,
+  V_start = -150,
+  V_end = 100
 )
 
 # Constants related to the sodium-potassium pump, pA, from Nygren et al, 1998

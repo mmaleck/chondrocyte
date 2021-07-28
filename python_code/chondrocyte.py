@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.integrate.odepack import odeint
 import os
 import pickle
@@ -20,8 +21,8 @@ Python version : 3.8.2
 def Voltage_clamp(solution, paramter):
 
     # prepare voltage as an array
-    V_step_size = 2501
-    VV = np.linspace(-150, 100, V_step_size)
+    V_step_size = paramter["V_step"]
+    VV = np.linspace(paramter["V_start"], paramter["V_end"], V_step_size)
     
     # get steady-state ion concentrations
     Ca_i_ss = solution[:,3][solution.shape[0]-1]
@@ -49,7 +50,7 @@ def Voltage_clamp(solution, paramter):
     # declear parameters
     C_m = paramter["C_m"]; K_o=paramter["K_o"]; Na_i_clamp = paramter["Na_i_clamp"]
     Ca_i_0 = paramter["Ca_i_0"]; K_i_0 = paramter["K_i_0"]; Q=paramter["Q"]
-    E_Na=paramter["E_Na"]; g_K_b_bar=paramter["g_K_b_bar"]
+    E_Na=paramter["E_Na"]; g_K_b_bar=paramter["g_K_b_bar"]; temp=paramter["temp"]
 
     for i in range(V_step_size):
 
@@ -66,8 +67,7 @@ def Voltage_clamp(solution, paramter):
         current_dict["I_Ca_ATP"][i] = functions.calciumPump(Ca_i=Ca_i_ss, enable_I_Ca_ATP=True)
 
         # I_K_ATP (pA?) Zhou/Ferrero, Biophys J, 2009
-        # TODO: it is complex number in the beginning of iterations. need to fix (by Kei)
-        current_dict["I_K_ATP"][i] = functions.potassiumPump(V=VV[i], K_i=None, K_o=K_o,E_K=-94.02, Na_i=Na_i_ss ,enable_I_K_ATP=True)
+        current_dict["I_K_ATP"][i] = functions.potassiumPump(V=VV[i], K_i=None, K_o=K_o,E_K=-94.02, Na_i=Na_i_ss, temp=temp, enable_I_K_ATP=True)
 
         # I_K_2pore (pA; pA/pF in print) 
         # modeled as a simple Boltzmann relationship via GHK, scaled to match isotonic K+ data from Bob Clark
@@ -89,8 +89,7 @@ def Voltage_clamp(solution, paramter):
         current_dict["I_bq"][i] = current_dict["I_Na_b"][i] + current_dict["I_K_b"][i] + current_dict["I_Cl_b"][i] + current_dict["I_leak"][i]
 
         # I_K_Ca_act (new version) (pA; pA/pF in print), with converted Ca_i units for model
-        # TODO: why Ca_i_ss here ? (by Kei)
-        current_dict["I_BK"][i] = functions.calciumActivatedPotassium(V=VV[i], Ca_i=params_dict["Ca_i_0"], enable_I_K_Ca_act=True)/C_m
+        current_dict["I_BK"][i] = functions.calciumActivatedPotassium(V=VV[i], Ca_i=Ca_i_0, enable_I_K_Ca_act=True)/C_m
 
         # I TRPV4 (pA; pA/pF in print)
         current_dict["I_TRPV4"][i] = functions.TripCurrent(V=VV[i], enable_I_TRPV4=True)/C_m
@@ -100,7 +99,6 @@ def Voltage_clamp(solution, paramter):
                                 + current_dict["I_NaCa"][i] + current_dict["I_NaK"][i] + current_dict["I_K_2pore"][i]
 
         # I_total (pA)
-        # TODO: not yet verifiyed due to "I_K_ATP"(by Kei)
         current_dict["I_total"][i] = current_dict["I_NaK"][i]*C_m + current_dict["I_NaCa"][i]*C_m + current_dict["I_Ca_ATP"][i] + \
                                     current_dict["I_K_DR"][i]*C_m +  current_dict["I_K_2pore"][i]*C_m + current_dict["I_K_ATP"][i] + \
                                     current_dict["I_BK"][i] + current_dict["I_Na_b"][i]*C_m + current_dict["I_K_b"][i]*C_m + \
@@ -154,4 +152,3 @@ with open(os.path.join(newfolder, 'current.pkl'), 'wb') as file:
 with open(os.path.join(newfolder, 'params.txt'), 'w') as par:
     for key, value in params_dict.items(): 
         par.write('%s: %s\n' % (key, value))
-
