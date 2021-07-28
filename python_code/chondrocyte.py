@@ -113,8 +113,7 @@ def Voltage_clamp(solution, paramter):
 
 # Following code will create a folder called "result" when you first run the simulation 
 # and also create a folder 1 inside "result" folder.
-# If there already exists "results", it will create a new folder based on the number of folders that exits inside "result"
-
+# If there already exists "result", it will create a new folder based on the number of folders that exits inside "result"
 path = os.getcwd()
 newfolder = os.path.join(path, "result")
 
