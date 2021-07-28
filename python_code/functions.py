@@ -1,25 +1,24 @@
-from params import params_dict
 import numpy as np
-from math import gamma, pi, log, ceil, exp, sqrt
+from math import pi, log, ceil, exp, sqrt
 from scipy.signal import square
 from scipy.linalg import null_space
+from params import params_dict
 
 """
-File name : chondrocyte.py 
-Author : Kei Yamamoto
+This file is part of the chondrocyte modelling project at Simula
+Research Laboratory, Norway. Refer to the files README and COPYING for
+more information about the project as well as terms of distribution.
+ 
+Author : Kei Yamamoto, Sofie Fischer, M.M.Malacker
 email : keiya@math.uio.no
 Data created : July, 2021
-Data last modified : 
 Python version : 3.8.2
-copyright :
-credits : 
-license : 
 """
 
 def rhs(y, t, params_dict):
     V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal = y
 
-    # FIXME: Fixing the volume while debugging -- do not understand this part (by kei)
+    # FIXME: Fixing the volume while debugging 
     vol_i = params_dict["vol_i_0"]
 
     if (params_dict["apply_Vm"] == True):
