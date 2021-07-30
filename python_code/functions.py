@@ -70,7 +70,6 @@ def rhs(y, t, params_dict):
 
     # Evolve calmodulin - Ca buffer
     cal_dot = 200000.0*Ca_i*(1.0 - cal) - 476.0*cal
-    # cal_dot = 200000.0*Ca_i*(1.0 - cal)
 
     #Evolve the concentrations
     clamp_Na_i = params_dict["clamp_Na_i"]
@@ -79,17 +78,15 @@ def rhs(y, t, params_dict):
         Na_i_dot = 0
     else:
         Na_i_dot = - (I_Na_b + 3*I_NaK + 3*I_NaCa - I_NaH + I_Cl_b + 0.5*I_leak)/(vol_i*F)
-        #Na_i_dot = - (I_Na_b + 3*I_NaK + 3*I_NaCa - I_NaH)/(vol_i*F)
     
     if (clamp_K_i == True):
         K_i_dot = 0
     else:
         K_i_dot  = - (I_K_b  - 2*I_NaK + I_K_ur + I_K_DR + I_K_2pore + I_K_Ca_act + I_K_ATP + 0.5*I_leak)/(vol_i*F)
-        #K_i_dot  = - (I_K_b  - 2*I_NaK + I_K_ur + I_K_DR + I_K_2pore + I_K_Ca_act + I_K_ATP)/(vol_i*F)
     
     Ca_i_dot =   -(I_Ca_ATP - 2*I_NaCa + I_TRPV4)/(2*vol_i*F) - 0.045*cal_dot
-    H_i_dot = 0
-    #H_i_dot =  - (I_NaH)/(vol_i*F)
+    # H_i_dot = 0
+    H_i_dot =  - (I_NaH)/(vol_i*F)
     #Cl_i_dot = 0
     Cl_i_dot =  (I_Cl_b)/(vol_i*F)
 
@@ -109,15 +106,12 @@ def rhs(y, t, params_dict):
     Cl_i_0 = params_dict["Cl_i_0"]
 
     #Think this is volume from one of the UK papers...check later 3/16/2016
-    # osm_i = Na_i + K_i + Ca_i + H_i + Cl_i
-    osm_i = K_i 
-    # osm_o = Na_o + K_o + Ca_o + H_o + Cl_o
-    osm_o = K_o 
-
-    P_f = 10.2e-4 # water permeability of the cell (cm sec^-1)
+    osm_i = Na_i + K_i + Ca_i + H_i + Cl_i
+    osm_o = Na_o + K_o + Ca_o + H_o + Cl_o
+    P_f = 10.2e-4 # water permeability of the cell (cm sec^-1), check unit 
     SA = 6.0**(2.0/3.0)*pi**(1.0/3.0)*vol_i**(2.0/3.0) # Surface Area
-    V_W = 18.0 # Molar volume of water 
-    vol_i_dot = P_f*SA*V_W*(osm_i - osm_o)
+    V_W = 18.0 # Molar volume of water, check unit  
+    vol_i_dot = P_f*SA*V_W*(osm_i - osm_o)*1e-4
 
     apply_Vm = params_dict["apply_Vm"]
     if (apply_Vm == True):
@@ -452,38 +446,40 @@ def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
 def potassiumPump(V, K_i, K_o, E_K, Na_i, temp, enable_I_K_ATP):
     """ATP-dependent K+ current, based on Simulation of Action Potentials From Metabolically Impaired Cardiac Myocytes Role of ATP-Sensitive K+ Current by Ferreo et al, 1996"""
     if (enable_I_K_ATP == True):
-        sigma   = 0.6
-        # some idea to expaned this model 
-        # 
-        F = params_dict["F"]; R = params_dict["R"]; T = params_dict["T"]
-        f_M = params_dict["f_M"]; Q_10 = params_dict["Q_10"]
+        F = params_dict["F"]; R = params_dict["R"]; 
+        T = temp + 273.15
+        # compute f_N
         K_h_Na_0 = params_dict["K_h_Na_0"]
         delta_Na = params_dict["delta_Na"]
-        gamma_zero = 33.375*(K_o/5.4)**(0.24)/500 # scaled, but not sure if it's okay
+        gamma_zero = 33.375*(K_o/5.4)**(0.24)/500 # TODO : think about this scaling 
         K_h_Na = K_h_Na_0*exp(-(delta_Na*F*V)/(R*T))
         f_N = 1/(1+(Na_i/K_h_Na)**2)
+        # compute f_M
+        delta_Mg = params_dict["delta_Na"]; Mg_i = params_dict["Mg_i"]
+        K_h_Mg = 0.65/sqrt(K_o+5)*exp(-2*delta_Mg*F*V/(R*T))
+        f_M = 1/(1+(Mg_i/K_h_Mg))
+        # compute f_T
+        Q_10 = params_dict["Q_10"]
         f_T = Q_10**((temp-36)/10)
+        # compute g_0 based on f_M, f_N, and f_T
         g_0 = gamma_zero*f_M*f_N*f_T
-        # g_0     = 30.95/40 # FIXME: Somewhat arbitrary. Scaled this down to match Zhou/Ferrero.
-        p_0 = params_dict["p_0"] 
+        # compute f_ATP
         H_K_ATP = params_dict["H_K_ATP"]
         K_m_ATP = params_dict["K_m_ATP"]
         C_A = params_dict["C_A"]
-        # surf    = 1 
         V_0 = params_dict["V_0"]
         ATP_i = params_dict["ATP_i"]
-        # FIXME:This ATP_i is negative in the beginning of the for loop and causes f_ATP to be complex number and so on (by Kei)
-        # ATP_i = abs(V - V_0) + ADP_i # FIXME: arbitrary
         ADP_i = C_A - ATP_i
         H = 1.3 + 0.74*exp(-H_K_ATP*ADP_i)
         K_m = 35.8 + 17.9*ADP_i**(K_m_ATP)
         f_ATP = 1.0/(1.0 + (ATP_i/K_m)**H)
+
         z_K = params_dict["z_K"]
         if E_K == None:
             E_K = nernstPotential(z_K, K_i, K_o)
-        
+
+        sigma = params_dict["sigma"]; p_0 = params_dict["p_0"] 
         I_K_ATP = sigma*g_0*p_0*f_ATP*(V - E_K)
-        # from IPython import embed; embed(); exit(1)
     else:
         I_K_ATP = 0.0
     

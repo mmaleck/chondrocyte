@@ -18,11 +18,11 @@ Python version : 3.8.2
 """
 
 # Apply voltage clamp
-def Voltage_clamp(solution, paramter):
+def Voltage_clamp(solution):
 
     # prepare voltage as an array
-    V_step_size = paramter["V_step"]
-    VV = np.linspace(paramter["V_start"], paramter["V_end"], V_step_size)
+    V_step_size = params_dict["V_step_size"]
+    VV = np.linspace(params_dict["V_start"], params_dict["V_end"], V_step_size)
     
     # get steady-state ion concentrations
     Ca_i_ss = solution[:,3][solution.shape[0]-1]
@@ -48,9 +48,9 @@ def Voltage_clamp(solution, paramter):
                     }
 
     # declear parameters
-    C_m = paramter["C_m"]; K_o=paramter["K_o"]; Na_i_clamp = paramter["Na_i_clamp"]
-    Ca_i_0 = paramter["Ca_i_0"]; K_i_0 = paramter["K_i_0"]; Q=paramter["Q"]
-    E_Na=paramter["E_Na"]; g_K_b_bar=paramter["g_K_b_bar"]; temp=paramter["temp"]
+    C_m = params_dict["C_m"]; K_o=params_dict["K_o"]; Na_i_clamp = params_dict["Na_i_clamp"]
+    Ca_i_0 = params_dict["Ca_i_0"]; K_i_0 = params_dict["K_i_0"]; Q=params_dict["Q"]
+    E_Na=params_dict["E_Na"]; g_K_b_bar=params_dict["g_K_b_bar"]; temp=params_dict["temp"]
 
     for i in range(V_step_size):
 
@@ -111,7 +111,7 @@ def Voltage_clamp(solution, paramter):
 
 # Following code will create a folder called "result" when you first run the simulation 
 # and also create a folder 1 inside "result" folder.
-# If there already exists "result", it will create a new folder based on the number of folders that exits inside "result"
+# If there already exists "result", it will create a new folder based on the number of folders that exits inside "result" folder. 
 path = os.getcwd()
 newfolder = os.path.join(path, "result")
 
@@ -138,7 +138,7 @@ y0 = (params_dict["V_0"], params_dict["Na_i_0"], params_dict["K_i_0"], params_di
 solution_ode = odeint(functions.rhs, y0, t, args=(params_dict,))
 
 # CaLL Voltage Clamp
-VV, current_dict = Voltage_clamp(solution_ode, params_dict)
+VV, current_dict = Voltage_clamp(solution_ode)
 
 # save ode_solution
 with open(os.path.join(newfolder, 'ode_solution.pkl'), 'wb') as file:

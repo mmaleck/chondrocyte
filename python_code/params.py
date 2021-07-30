@@ -14,19 +14,18 @@ Python version : 3.8.2
 params_dict = dict(
   clamp_conc = False,             # Toggle clamping of the internal concentrations (for debugging)
   apply_Vm = False,               # Toggle setting of the membrane voltage
-  clamp_Vm = True,
+  clamp_Vm = True,                # If apply_Vm is true, then one of clamp_Vm, ramp_Vm and step_Vm must be true to define what voltage is to be applied
   step_Vm = False,
   ramp_Vm = False,
   clamp_Na_i = True,              # Clamp intracellular concentrations to simulate experimental conditions
   clamp_K_i = True,               # Clamp intracellular concentrations to simulate experimental conditions
-  V_final = 100.0,
+  V_final = 100.0,                # Final value of membrane voltage when ramped (mV)
   # Time-stepping information
   t_final = 50000.0,              # Final time (s)
   dt = 1e0,
   # External concentrations
-  Na_o = 295.0,                   # Clamped external sodium concentration (mM/l)
-  K_o_0  = 5.4,
-  K_o = 5.4,                     
+  Na_o = 140.0,                   # Clamped external sodium concentration (mM/l), 130 for cardiac; 140 for synovial fluid, 240-250 for chondrocyte matrix  
+  K_o_0  = 5.4,                   # # Clamped external potassium concentration (mM/l), 5.4 for cardiac; 5 for synovial fluid, 7-12 for chondrocyte matrix
   step_K_o = False,
   Ca_o = 13,                      # Clamped external calcium concentration (mM/l), 1.8-2.0 for cardiac; 1.5 for synovial fluid, 6-15 for chondrocyte matrix
   H_o    = 10**(-7.4),            # Clamped external hydrogen concentration (mM/l)
@@ -35,10 +34,10 @@ params_dict = dict(
   V_0 = -66.725,                  # Initial membrane potential (mV)
   Na_i_0  =  25.0,                # Initial internal sodium concentration (mM/l), 8.5 for cardiac; 40??? for chondrocyte - using either 12.0 or 20.0
   Na_i_clamp = 25.0,
-  K_i_0 = 180.0,                  # Initial internal potassium concentration (mM/l), 5.4 for cardiac; 5 for synovial fluid, 7-12 for chondrocyte matrix      
+  K_i_0 = 180.0,                  # Initial internal potassium concentration (mM/l), 120-140 for cardiac; 120-140 for chondrocyte
   Ca_i_0 = 0.00001,               # Initial internal calcium concentration (mM/l), 0.000067 mM/l for cardiac, 0.00001 - 0.00005 for chondrocyte
   H_i_0   = 3.47426156721507e-10, # Initial internal hydrogen concentration (mM/l)
-  Cl_i_0  = 60.0,                 # Initial internal chloride concentration (mM/l)"""
+  Cl_i_0  = 60.0,                 # Initial internal chloride concentration (mM/l)
   # Initial value of Kv activation
   a_ur_0  = 1.95403736678201e-04, 
   i_ur_0  = 9.99896050539933e-01, 
@@ -55,7 +54,7 @@ params_dict = dict(
   z_Cl  = 1,                      # Charge on the chloride ion
   # Cell parameters
   C_m = 6.3,                      # Membrane capacitance, (pF)
-  vol_i_0 = 0.005884,             # Internal volume
+  vol_i_0 = 0.005884,             # Internal volume (mL)
   C_myo = 50.0,                   # (pF); myocyte capacitance from Nygren, et al, 1998, for scaling
   # Constants related to external stimulation
   t_cycle = 5.0,                  # Total cycle time (s)
@@ -133,7 +132,10 @@ params_dict = dict(
   V_h = -26.7, # mV
   S_h = 4.1,   # mV
   # Constants related to I_K_ATP
+  sigma = 0.6,
   f_M = 1.0,
+  Mg_i = 1.0,
+  delta_Mg = 0.32, 
   Q_10 = 1.3,
   K_h_Na_0 = 25.9,  #mM/L
   delta_Na = 0.35,
@@ -143,10 +145,12 @@ params_dict = dict(
   C_A = 8.0, # total concentration
   ATP_i = 7.7,
   # parameter for voltage clamp
-  V_step = 2501,
+  V_step_size = 2501,
   V_start = -150,
   V_end = 100
 )
+
+params_dict["K_o"] = params_dict["K_o_0"]
 
 # Constants related to the sodium-potassium pump, pA, from Nygren et al, 1998
 params_dict["I_NaK_bar"] = params_dict["I_NaK_scale"]*70.8253*params_dict["C_m"]/params_dict["C_myo"]
