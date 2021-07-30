@@ -36,7 +36,7 @@ When you're done making changes and you'd like to propose them for review, open 
 - Did you have an issue, like a merge conflict? Check out our [git tutorial](https://lab.github.com/githubtraining/managing-merge-conflicts) on how to resolve merge conflicts and other issues.
 
 ### Your PR is merged!
-Congratulations! The whole GitHub community thanks you. :sparkles:
+Congratulations! The whole community thanks you. :sparkles:
 
 Once your PR is merged, you will be proudly listed as a contributor in the [contributor chart](https://github.com/mmaleck/chondrocyte/graphs/contributors).
 
