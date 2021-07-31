@@ -1,8 +1,8 @@
 # Chondrocyte
 
 <p align="center">
-  <img src="https://github.com/mmaleck/chondrocyte/blob/master/docs/body_nankotsu.png" width="350">
-  <img src="https://github.com/mmaleck/chondrocyte/blob/master/docs/body_nankotsu_suriheri.png" width="350">
+  <img src="https://github.com/mmaleck/chondrocyte/blob/master/docs/body_nankotsu.png" width="200">
+  <img src="https://github.com/mmaleck/chondrocyte/blob/master/docs/body_nankotsu_suriheri.png" width="200">
 </p>
 
 ## Description
