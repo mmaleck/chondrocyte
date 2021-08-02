@@ -10,10 +10,11 @@ Model of the fundamental electrophysiological characteristics of human articular
 
 ## Installation
 
-The followinfg python modules are needed to use Choondrocyte, 
+The following python modules are needed to use chondrocyte, 
 
 * Numpy (developed with Version: 1.18.1)
 * Scipy (developed with Version: 1.6.0)
+* matplotlib (developed with Version: 3.4.1)
 
 To use chondrocyte, please clone the repository.
 
@@ -24,13 +25,16 @@ cd chondrocyte
 
 ## Usage
 
-chondrocyte was first developed with MATLAB and thus we have a folder [matlab_code](matlab_code). Then, it was reimplemented in python with some improvements and model expansions. \
-So, we enocurage users to use [python_code](python_code) and also we only write instructions how to use chondrocyte in python for that reason. \
+chondrocyte was first developed with MATLAB and thus we have the folder [matlab_code](matlab_code). Then, it was reimplemented in python with some improvements and model expansions. \
+Therefore, we encourage users to use [python_code](python_code), and also we only write instructions on how to use chondrocyte in python for that matter. \
 
-Inside [python_code](python_code), there are four python files, `chondrocyte.py`, `functions.py`, `params.py`, and `postprocess.py` in addition to four jupter notebooks `demo_*.ipynb`. \
-`chondrocyte.py` is the core part of the chdondrocyte. It imports necessary functions from `functions.py` and parameters from `params.py` to execute the program, and `postprocess.py` is merely to demonstrate how to postporocess the results. 
+Inside [python_code](python_code), there are four python files, `chondrocyte.py`, `functions.py`, `params.py`, and `postprocess.py` in addition to four jupyter notebooks `demo_*.ipynb`. 
 
-For detailed instruction aboout the code, we ask users to have a look on the code as it contains the explanation as comments.
+These jupyter notebooks are great examples of how to use the chondrocyte interactively and the demos include replications of figures from the published paper. 
+
+`chondrocyte.py` is the core part of the chondrocyte. It imports necessary functions from `functions.py` and parameters from `params.py` to execute the program, and `postprocess.py` is merely to demonstrate how to post-process the results. 
+
+For detailed instructions about the code, we ask users to have a look at the code as it contains the explanation as comments.
 
 ## Authors
 chondrocyte is developed by
@@ -48,7 +52,7 @@ chondrocyte is Copyright (2021) by the authors.
 
 ## Citation
 
-If you use chondrocyte and want to cite it, you can either cite this web site or the following paper.
+If you use chondrocyte and want to cite it, you can either cite this website or the following paper.
 
 ```
 @article{Maleckar2018,
