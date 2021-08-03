@@ -25,8 +25,8 @@ cd chondrocyte
 
 ## Usage
 
-chondrocyte was first developed with MATLAB and thus we have the folder [matlab_code](matlab_code). Then, it was reimplemented in python with some improvements and model expansions. \
-Therefore, we encourage users to use [python_code](python_code), and also we only write instructions on how to use chondrocyte in python for that matter. \
+chondrocyte was first developed with MATLAB and thus we have the folder [matlab_code](matlab_code). Then, it was reimplemented in python with some improvements and model expansions.
+Therefore, we encourage users to use [python_code](python_code), and also we only write instructions on how to use chondrocyte in python for that matter. 
 
 Inside [python_code](python_code), there are four python files, `chondrocyte.py`, `functions.py`, `params.py`, and `postprocess.py` in addition to four jupyter notebooks `demo_*.ipynb`. 
 
