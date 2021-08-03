@@ -1,19 +1,18 @@
+"""
+This file is part of the chondrocyte modelling project at Simula
+Research Laboratory, Norway. Refer to the files README and LICENSE for
+more information about the project as well as terms of distribution.
+ 
+Author : Kei Yamamoto, Sofie Fischer, M.M.Malacker
+Data created : July, 2021
+Python version : 3.8.2
+"""
+
 import numpy as np
 from math import pi, log, ceil, exp, sqrt
 from scipy.signal import square
 from scipy.linalg import null_space
 from params import params_dict
-
-"""
-This file is part of the chondrocyte modelling project at Simula
-Research Laboratory, Norway. Refer to the files README and COPYING for
-more information about the project as well as terms of distribution.
- 
-Author : Kei Yamamoto, Sofie Fischer, M.M.Malacker
-email : keiya@math.uio.no
-Data created : July, 2021
-Python version : 3.8.2
-"""
 
 def rhs(y, t, params_dict):
     V, Na_i, K_i, Ca_i, H_i, Cl_i, a_ur, i_ur, vol_i, cal = y
@@ -313,7 +312,6 @@ def ultraRapidlyRectifyingPotassiumHelper(V):
 def ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, enable_I_K_ur):
     if (enable_I_K_ur == True):
         z_K = params_dict["z_K"]; g_K_ur = params_dict["g_K_ur"]
-        # why this function is called ? (by Kei)
         a_ur_inf, i_ur_inf, tau_a_ur, tau_i_ur = ultraRapidlyRectifyingPotassiumHelper(V)
         E_K        = nernstPotential(z_K, K_i, K_o)
         I_K_ur     = g_K_ur*a_ur*(V - E_K)

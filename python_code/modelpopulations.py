@@ -1,17 +1,19 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Tue Jul 27 08:54:07 2021
-
-@author: sophie
+This file is part of the chondrocyte modelling project at Simula
+Research Laboratory, Norway. Refer to the files README and LICENSE for
+more information about the project as well as terms of distribution.
+ 
+Author : Sofie Fischer, M.M.Malacker
+Data created : July, 2021
+Python version : 3.8.2
 """
-from chondrocyte import Voltage_clamp
-import functions
-from params import params_dict
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate.odepack import odeint
+from chondrocyte import Voltage_clamp
+import functions
+from params import params_dict
 
 count = 0
 num_model = 20
@@ -78,7 +80,6 @@ while count < num_model:
     axs[0].plot(VV,current_dict["I_NaK"])
     axs[1].plot(VV,current_dict["I_NaCa"])
     axs[2].plot(VV, current_dict["I_K_2pore"])
-  
     
     count += 1
 

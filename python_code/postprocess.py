@@ -1,10 +1,21 @@
+"""
+This file is part of the chondrocyte modelling project at Simula
+Research Laboratory, Norway. Refer to the files README and LICENSE for
+more information about the project as well as terms of distribution.
+
+Author : Kei Yamamoto
+Data created : July, 2021
+Python version : 3.8.2
+"""
+
 from pickle import load
 from os import path
 from argparse import ArgumentParser
 import numpy as np
 import matplotlib.pyplot as plt
 from params import params_dict
-'''
+
+"""
 Postprocess file
 Exmaple usage : python postprocess.py --case="result/1" --
 
@@ -23,12 +34,7 @@ current_name : "I_K_DR"
                "I_TRPV4" 
                "I_RMP" 
                "I_total"
-
-Author : Kei Yamamoto
-email : keiya@math.uio.no
-Data created : July, 2021
-Python version : 3.8.2
-'''
+"""
 
 parser = ArgumentParser()
 parser.add_argument('--case', type=str, default="result/1", help="Path to simulation results",

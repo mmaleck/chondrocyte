@@ -1,3 +1,13 @@
+"""
+This file is part of the chondrocyte modelling project at Simula
+Research Laboratory, Norway. Refer to the files README and LICENSE for
+more information about the project as well as terms of distribution.
+ 
+Author : Kei Yamamoto, Sofie Fischer, M.M.Malacker
+Data created : July, 2021
+Python version : 3.8.2
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate.odepack import odeint
@@ -5,17 +15,6 @@ import os
 import pickle
 import functions
 from params import params_dict
-
-"""
-This file is part of the chondrocyte modelling project at Simula
-Research Laboratory, Norway. Refer to the files README and COPYING for
-more information about the project as well as terms of distribution.
- 
-Author : Kei Yamamoto, Sofie Fischer
-email : keiya@math.uio.no
-Data created : July, 2021
-Python version : 3.8.2
-"""
 
 # Apply voltage clamp
 def Voltage_clamp(solution):

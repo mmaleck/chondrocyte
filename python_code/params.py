@@ -1,15 +1,14 @@
-from math import sqrt
-
 """
 This file is part of the chondrocyte modelling project at Simula
-Research Laboratory, Norway. Refer to the files README and COPYING for
+Research Laboratory, Norway. Refer to the files README and LICENSE for
 more information about the project as well as terms of distribution.
  
 Author : Kei Yamamoto, Sofie Fischer, M.M.Malacker
-email : keiya@math.uio.no
 Data created : July, 2021
 Python version : 3.8.2
 """
+
+from math import sqrt
 
 params_dict = dict(
   clamp_conc = False,             # Toggle clamping of the internal concentrations (for debugging)
