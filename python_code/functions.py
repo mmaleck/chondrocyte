@@ -107,9 +107,10 @@ def rhs(y, t, params_dict):
     #Think this is volume from one of the UK papers...check later 3/16/2016
     osm_i = Na_i + K_i + Ca_i + H_i + Cl_i
     osm_o = Na_o + K_o + Ca_o + H_o + Cl_o
-    P_f = 10.2e-4 # water permeability of the cell (cm sec^-1), check unit 
+    P_f = 10.2e-4                                      # water permeability of the cell (cm sec^-1), check unit 
     SA = 6.0**(2.0/3.0)*pi**(1.0/3.0)*vol_i**(2.0/3.0) # Surface Area
-    V_W = 18.0 # Molar volume of water, check unit  
+    V_W = 18.0                                         # Molar volume of water, check unit  
+    # compute dvolume/dt 
     vol_i_dot = P_f*SA*V_W*(osm_i - osm_o)*1e-4
 
     apply_Vm = params_dict["apply_Vm"]
@@ -366,7 +367,7 @@ def calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act):
         # I_K_Ca_act (new version) (pA), with converted Ca_i units for model
         # Set constants
         convert_units = 1e6 # Convert from nM (e-9) to mM (e-3)
-        gBK = 2.50 # Gmax, nS
+        gBK = params_dict["gBK"]
         E_K = -83  # Sun, et al
         #tspan = 1e-3*[0:1:300] %time in seconds
         #C_m = 7 %pF
