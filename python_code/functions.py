@@ -73,6 +73,10 @@ def rhs(y, t, params_dict):
     #Evolve the concentrations
     clamp_Na_i = params_dict["clamp_Na_i"]
     clamp_K_i = params_dict["clamp_K_i"]
+    calmp_Ca_i = params_dict["calmp_Ca_i"]
+    clamp_H_i = params_dict["clamp_H_i"]
+    clamp_Cl_i = params_dict["clamp_Cl_i"]
+
     if (clamp_Na_i == True):
         Na_i_dot = 0
     else:
@@ -83,11 +87,20 @@ def rhs(y, t, params_dict):
     else:
         K_i_dot  = - (I_K_b  - 2*I_NaK + I_K_ur + I_K_DR + I_K_2pore + I_K_Ca_act + I_K_ATP + 0.5*I_leak)/(vol_i*F)
     
-    Ca_i_dot =   -(I_Ca_ATP - 2*I_NaCa + I_TRPV4)/(2*vol_i*F) - 0.045*cal_dot
-    # H_i_dot = 0
-    H_i_dot =  - (I_NaH)/(vol_i*F)
-    #Cl_i_dot = 0
-    Cl_i_dot =  (I_Cl_b)/(vol_i*F)
+    if (calmp_Ca_i == True):
+        Ca_i_dot = 0
+    else:
+        Ca_i_dot =   -(I_Ca_ATP - 2*I_NaCa + I_TRPV4)/(2*vol_i*F) - 0.045*cal_dot
+    
+    if (clamp_H_i == True):
+        H_i_dot = 0
+    else:
+        H_i_dot =  - (I_NaH)/(vol_i*F)
+
+    if (clamp_Cl_i == True):
+        Cl_i_dot = 0
+    else:    
+        Cl_i_dot =  (I_Cl_b)/(vol_i*F)
 
     a_ur_inf, i_ur_inf, tau_a_ur, tau_i_ur = ultraRapidlyRectifyingPotassiumHelper(V)
 
@@ -112,6 +125,8 @@ def rhs(y, t, params_dict):
     V_W = 18.0                                         # Molar volume of water, check unit  
     # compute dvolume/dt 
     vol_i_dot = P_f*SA*V_W*(osm_i - osm_o)*1e-4
+
+    # print(vol_i_dot)
 
     apply_Vm = params_dict["apply_Vm"]
     if (apply_Vm == True):
