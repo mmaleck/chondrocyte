@@ -52,7 +52,7 @@ chondrocyte is Copyright (2021) by the authors.
 
 ## Citation
 
-If you use chondrocyte and want to cite it, you can either cite this website or the following paper.
+If you use chondrocyte and want to cite it, you can either cite this website or one of the following papers.
 
 ```
 @article{Maleckar2018,
