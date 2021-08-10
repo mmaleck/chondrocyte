@@ -16,8 +16,12 @@ params_dict = dict(
   clamp_Vm = True,                # If apply_Vm is true, then one of clamp_Vm, ramp_Vm and step_Vm must be true to define what voltage is to be applied
   step_Vm = False,
   ramp_Vm = False,
-  clamp_Na_i = True,              # Clamp intracellular concentrations to simulate experimental conditions
-  clamp_K_i = True,               # Clamp intracellular concentrations to simulate experimental conditions
+  # Clamp intracellular concentrations to simulate experimental conditions
+  clamp_Na_i = True,              
+  clamp_K_i = True,
+  calmp_Ca_i = False,
+  clamp_H_i = False,
+  clamp_Cl_i = False,
   V_final = 100.0,                # Final value of membrane voltage when ramped (mV)
   # Time-stepping information
   t_final = 50000.0,              # Final time (s)
