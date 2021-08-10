@@ -111,43 +111,45 @@ def Voltage_clamp(solution):
 # Following code will create a folder called "result" when you first run the simulation 
 # and also create a folder 1 inside "result" folder.
 # If there already exists "result", it will create a new folder based on the number of folders that exits inside "result" folder. 
-path = os.getcwd()
-newfolder = os.path.join(path, "result")
 
-if not os.path.exists(newfolder):
-    newfolder = os.path.join(newfolder, '1')
-    os.makedirs(newfolder)
-else:
-    previous = [f for f in os.listdir(newfolder) if not f.startswith('.')]
-    previous = max(map(eval, previous)) if previous else 0
-    newfolder = os.path.join(newfolder, str(previous + 1))
-    os.makedirs(newfolder)
+if __name__ == "main":
+    path = os.getcwd()
+    newfolder = os.path.join(path, "result")
 
-# Define time span
-t_final = params_dict["t_final"]
-dt = params_dict["dt"]
-t = np.linspace(0, t_final, int(t_final/dt))
+    if not os.path.exists(newfolder):
+        newfolder = os.path.join(newfolder, '1')
+        os.makedirs(newfolder)
+    else:
+        previous = [f for f in os.listdir(newfolder) if not f.startswith('.')]
+        previous = max(map(eval, previous)) if previous else 0
+        newfolder = os.path.join(newfolder, str(previous + 1))
+        os.makedirs(newfolder)
 
-# Define initial condition vector
-y0 = (params_dict["V_0"], params_dict["Na_i_0"], params_dict["K_i_0"], params_dict["Ca_i_0"], params_dict["H_i_0"], 
-      params_dict["Cl_i_0"], params_dict["a_ur_0"], params_dict["i_ur_0"], params_dict["vol_i_0"], 
-      params_dict["cal_0"])
+    # Define time span
+    t_final = params_dict["t_final"]
+    dt = params_dict["dt"]
+    t = np.linspace(0, t_final, int(t_final/dt))
 
-# Call the ODE solver
-solution_ode = odeint(functions.rhs, y0, t, args=(params_dict,))
+    # Define initial condition vector
+    y0 = (params_dict["V_0"], params_dict["Na_i_0"], params_dict["K_i_0"], params_dict["Ca_i_0"], params_dict["H_i_0"], 
+        params_dict["Cl_i_0"], params_dict["a_ur_0"], params_dict["i_ur_0"], params_dict["vol_i_0"], 
+        params_dict["cal_0"])
 
-# CaLL Voltage Clamp
-VV, current_dict = Voltage_clamp(solution_ode)
+    # Call the ODE solver
+    solution_ode = odeint(functions.rhs, y0, t, args=(params_dict,))
 
-# save ode_solution
-with open(os.path.join(newfolder, 'ode_solution.pkl'), 'wb') as file:
-    pickle.dump(solution_ode, file)
+    # CaLL Voltage Clamp
+    VV, current_dict = Voltage_clamp(solution_ode)
 
-# save current
-with open(os.path.join(newfolder, 'current.pkl'), 'wb') as file:
-    pickle.dump(current_dict, file)
+    # save ode_solution
+    with open(os.path.join(newfolder, 'ode_solution.pkl'), 'wb') as file:
+        pickle.dump(solution_ode, file)
 
-# save parameters as text file
-with open(os.path.join(newfolder, 'params.txt'), 'w') as par:
-    for key, value in params_dict.items(): 
-        par.write('%s: %s\n' % (key, value))
+    # save current
+    with open(os.path.join(newfolder, 'current.pkl'), 'wb') as file:
+        pickle.dump(current_dict, file)
+
+    # save parameters as text file
+    with open(os.path.join(newfolder, 'params.txt'), 'w') as par:
+        for key, value in params_dict.items(): 
+            par.write('%s: %s\n' % (key, value))
