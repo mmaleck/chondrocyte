@@ -6,17 +6,17 @@
 </p>
 
 ## Description
-Model of the fundamental electrophysiological characteristics of human articular chondrocytes, focused on K+ transport mechanisms, and their ability to regulate to the resting membrane potential, Em.
+Model of the fundamental electrophysiological characteristics of human articular chondrocytes, focused on K+ selective ion channels and ion pumps, but also including the contributions of Na+, Ca2+, and Mg2+ on the chondrocyte membrane potential (Em). 
 
 ## Installation
 
 The following python modules are needed to use chondrocyte, 
 
-* Numpy (developed with Version: 1.18.1)
-* Scipy (developed with Version: 1.6.0)
-* matplotlib (developed with Version: 3.4.1)
+* NumPy (developed with Version: 1.18.1)
+* SciPy (developed with Version: 1.6.0)
+* Matplotlib (developed with Version: 3.4.1)
 
-To use chondrocyte, please clone the repository.
+To use chondrocyte, please clone the repository:
 
 ```
 git clone https://github.com/mmaleck/chondrocyte.git
@@ -25,14 +25,15 @@ cd chondrocyte
 
 ## Usage
 
-chondrocyte was first developed with MATLAB and thus we have the folder [matlab_code](matlab_code). Then, it was reimplemented in python with some improvements and model expansions.
+chondrocyte was originally developed with MATLAB and can be found in the [matlab_code](matlab_code) folder. It has been reimplemented in python with some improvements and model expansions.
 Therefore, we encourage users to use [python_code](python_code), and also we only write instructions on how to use chondrocyte in python for that matter. 
 
 Inside [python_code](python_code), there are four python files, `chondrocyte.py`, `functions.py`, `params.py`, and `postprocess.py` in addition to four jupyter notebooks `demo_*.ipynb`. 
 
-These jupyter notebooks are great examples of how to use the chondrocyte interactively and the demos include replications of figures from the published paper. 
+These jupyter notebooks are great examples of how to use the chondrocyte interactively, and the demos include replications of figures from the published papers. 
 
-`chondrocyte.py` is the core part of the chondrocyte. It imports necessary functions from `functions.py` and parameters from `params.py` to execute the program, and `postprocess.py` is merely to demonstrate how to post-process the results. 
+`chondrocyte.py` is the core part of the chondrocyte model. 
+It imports necessary functions from `functions.py` and parameters from `params.py` to execute the program, and `postprocess.py` demonstrates one way to process the results. 
 
 For detailed instructions about the code, we ask users to have a look at the code as it contains the explanation as comments.
 
