@@ -28,22 +28,22 @@ cd chondrocyte
 chondrocyte was originally developed with MATLAB and can be found in the [matlab_code](matlab_code) folder. It has been reimplemented in python with some improvements and model expansions.
 Therefore, we encourage users to use [python_code](python_code), and also we only write instructions on how to use chondrocyte in python for that matter. 
 
-Inside [python_code](python_code), there are four python files, `chondrocyte.py`, `functions.py`, `params.py`, and `postprocess.py` in addition to four jupyter notebooks `demo_*.ipynb`. 
+Inside [python_code](python_code), there are four python files, `chondrocyte.py`, `functions.py`, `params.py`, `modelpopulations.py`, and `postprocess.py` in addition to four jupyter notebooks `demo_*.ipynb`. 
 
-These jupyter notebooks are great examples of how to use the chondrocyte interactively, and the demos include replications of figures from the published papers. 
+These jupyter notebooks are examples of how to use the chondrocyte interactively, and the demos include replications of figures from the published papers. 
 
 `chondrocyte.py` is the core part of the chondrocyte model. 
-It imports necessary functions from `functions.py` and parameters from `params.py` to execute the program, and `postprocess.py` demonstrates one way to process the results. 
+It imports necessary functions from `functions.py` and parameters from `params.py` to execute the program, and `postprocess.py` demonstrates one way to process the results. `modelpopulations.py` illustrates how to use population of models to explore high dimension parameter space. 
 
 For detailed instructions about the code, we ask users to have a look at the code as it contains the explanation as comments.
 
 ## Authors
 chondrocyte is developed by
 
-  * Molly Maleckar 
   * Kei Yamamoto 
   * Sophie Fischer 
   * Maria Perona Fjeldstad 
+  * Molly Maleckar 
 
 ## License
 
