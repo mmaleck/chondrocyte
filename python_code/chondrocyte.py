@@ -50,6 +50,7 @@ def Voltage_clamp(solution):
     C_m = params_dict["C_m"]; K_o=params_dict["K_o"]; Na_i_clamp = params_dict["Na_i_clamp"]
     Ca_i_0 = params_dict["Ca_i_0"]; K_i_0 = params_dict["K_i_0"]; Q=params_dict["Q"]
     E_Na=params_dict["E_Na"]; g_K_b_bar=params_dict["g_K_b_bar"]; temp=params_dict["temp"]
+    K_i = params_dict["K_i_0"]
 
     for i in range(V_step_size):
 
@@ -66,7 +67,7 @@ def Voltage_clamp(solution):
         current_dict["I_Ca_ATP"][i] = functions.calciumPump(Ca_i=Ca_i_ss, enable_I_Ca_ATP=True)
 
         # I_K_ATP (pA?) Zhou/Ferrero, Biophys J, 2009
-        current_dict["I_K_ATP"][i] = functions.potassiumPump(V=VV[i], K_i=None, K_o=K_o,E_K=-94.02, Na_i=Na_i_ss, temp=temp, enable_I_K_ATP=True)
+        current_dict["I_K_ATP"][i] = functions.potassiumPump(V=VV[i], K_i=K_i, K_o=K_o,E_K=-94.02, Na_i=Na_i_ss, temp=temp, enable_I_K_ATP=True)
 
         # I_K_2pore (pA; pA/pF in print) 
         # modeled as a simple Boltzmann relationship via GHK, scaled to match isotonic K+ data from Bob Clark

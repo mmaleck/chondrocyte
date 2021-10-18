@@ -44,11 +44,11 @@ def rhs(y, t, params_dict):
 
     # Calculate potassium currents
     P_K = params_dict["P_K"]; temp = params_dict["temp"]
-    I_K_ur = ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, enable_I_K_ur=False)
+    I_K_ur = ultrarapidlyRectifyingPotassium(V, K_i, K_o, a_ur, enable_I_K_ur=False) # essential reimplemented as I_K_DR, so enable_I_K_ur has to be False
     I_K_DR = DelayedRectifierPotassium(V, enable_I_K_DR=True)
     I_K_2pore = twoPorePotassium(V, K_i, K_o, P_K, enable_I_K_2pore=True)
     I_K_Ca_act = calciumActivatedPotassium(V, Ca_i, enable_I_K_Ca_act=True)
-    I_K_ATP = potassiumPump(V, K_i, K_o, None, Na_i, temp, enable_I_K_ATP=False)
+    I_K_ATP = potassiumPump(V, K_i, K_o, None, Na_i, temp, enable_I_K_ATP=True)
   
     # Calculate other currents
     I_ASIC = voltageActivatedHydrogen(enable_I_ASIC=False)
@@ -465,7 +465,7 @@ def potassiumPump(V, K_i, K_o, E_K, Na_i, temp, enable_I_K_ATP):
         # compute f_N
         K_h_Na_0 = params_dict["K_h_Na_0"]
         delta_Na = params_dict["delta_Na"]
-        gamma_zero = 33.375*(K_o/5.4)**(0.24)/500 # TODO : think about this scaling 
+        gamma_zero = 33.375*(K_o/5.4)**(0.24)/500 
         K_h_Na = K_h_Na_0*exp(-(delta_Na*F*V)/(R*T))
         f_N = 1/(1+(Na_i/K_h_Na)**2)
         # compute f_M
@@ -489,9 +489,10 @@ def potassiumPump(V, K_i, K_o, E_K, Na_i, temp, enable_I_K_ATP):
         f_ATP = 1.0/(1.0 + (ATP_i/K_m)**H)
 
         z_K = params_dict["z_K"]
-        if E_K == None:
-            E_K = nernstPotential(z_K, K_i, K_o)
-
+        # if E_K == None:
+            # E_K = nernstPotential(z_K, K_i, K_o)
+        # from IPython import embed; embed(); exit(1)
+        E_K = nernstPotential(z_K, K_i, K_o)
         sigma = params_dict["sigma"]; p_0 = params_dict["p_0"] 
         I_K_ATP = sigma*g_0*p_0*f_ATP*(V - E_K)
     else:
