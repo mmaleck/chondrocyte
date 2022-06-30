@@ -113,7 +113,7 @@ def Voltage_clamp(solution):
 # and also create a folder 1 inside "result" folder.
 # If there already exists "result", it will create a new folder based on the number of folders that exits inside "result" folder. 
 
-if __name__ == "main":
+if __name__ == "__main__":
     path = os.getcwd()
     newfolder = os.path.join(path, "result")
 
